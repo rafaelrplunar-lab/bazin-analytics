@@ -85,12 +85,25 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .sector-warn{font-size:.68rem;border-radius:4px;padding:.15rem .45rem;white-space:nowrap}
 .sector-divider{height:1px;background:var(--border);margin:.5rem 0}
 .besst-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:10px;font-size:.65rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
-.bb-B{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
-.bb-E{background:rgba(250,204,21,.12);color:#fde047;border:1px solid rgba(250,204,21,.3)}
-.bb-S1{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.3)}
-.bb-S2{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)}
-.bb-T{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
-.bb-X{background:rgba(148,163,184,.08);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+/* BESST Barsi — destaque */
+.bb-B {background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}
+.bb-E {background:rgba(250,204,21,.15);color:#fde047;border:1px solid rgba(250,204,21,.4)}
+.bb-S1{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.4)}
+.bb-S2{background:rgba(167,139,250,.15);color:#c4b5fd;border:1px solid rgba(167,139,250,.4)}
+.bb-T {background:rgba(251,146,60,.15);color:#fb923c;border:1px solid rgba(251,146,60,.4)}
+/* Setores fora do BESST */
+.bb-ind{background:rgba(99,102,241,.1);color:#818cf8;border:1px solid rgba(99,102,241,.25)}
+.bb-con{background:rgba(244,114,182,.1);color:#f472b6;border:1px solid rgba(244,114,182,.25)}
+.bb-mat{background:rgba(163,230,53,.1);color:#a3e635;border:1px solid rgba(163,230,53,.25)}
+.bb-oil{background:rgba(234,88,12,.1);color:#fb923c;border:1px solid rgba(234,88,12,.25)}
+.bb-imb{background:rgba(6,182,212,.1);color:#22d3ee;border:1px solid rgba(6,182,212,.25)}
+.bb-ret{background:rgba(248,113,113,.1);color:#fca5a5;border:1px solid rgba(248,113,113,.25)}
+.bb-agr{background:rgba(132,204,22,.1);color:#bef264;border:1px solid rgba(132,204,22,.25)}
+.bb-tec{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25)}
+.bb-sau{background:rgba(20,184,166,.1);color:#2dd4bf;border:1px solid rgba(20,184,166,.25)}
+.bb-edu{background:rgba(251,191,36,.1);color:#fcd34d;border:1px solid rgba(251,191,36,.25)}
+.bb-trp{background:rgba(156,163,175,.1);color:#d1d5db;border:1px solid rgba(156,163,175,.25)}
+.bb-out{background:rgba(148,163,184,.08);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
 
 /* DCA CARD */
 .dca-card{background:linear-gradient(135deg,rgba(200,130,12,.07),rgba(200,130,12,.02));border:1px solid rgba(200,130,12,.28);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
@@ -225,41 +238,97 @@ tr:hover td{background:var(--surface2)}
 // ══════════════════════════════════════════════
 //  BESST — Classificação Barsi
 // ══════════════════════════════════════════════
-const BESST_MAP = {
-  B: { label:'Bancos',    color:'bb-B', icon:'🏦' },
-  E: { label:'Energia',   color:'bb-E', icon:'⚡' },
-  S1:{ label:'Saneamento',color:'bb-S1',icon:'🚰' },
-  S2:{ label:'Seguros',   color:'bb-S2',icon:'🛡️' },
-  T: { label:'Telecom',   color:'bb-T', icon:'📡' },
-  X: { label:'Fora BESST',color:'bb-X', icon:'⚪' },
+// ── Mapa completo de setores B3 ──────────────────────────
+const SECTOR_MAP = {
+  // ★ BESST Barsi — setores preferenciais
+  B:   { label:'Bancos',         color:'bb-B',   icon:'🏦', besst:true  },
+  E:   { label:'Energia',        color:'bb-E',   icon:'⚡', besst:true  },
+  S1:  { label:'Saneamento',     color:'bb-S1',  icon:'🚰', besst:true  },
+  S2:  { label:'Seguros',        color:'bb-S2',  icon:'🛡️', besst:true  },
+  T:   { label:'Telecom',        color:'bb-T',   icon:'📡', besst:true  },
+  // Demais setores B3
+  IND: { label:'Indústria',      color:'bb-ind', icon:'🏭', besst:false },
+  CON: { label:'Consumo',        color:'bb-con', icon:'🛒', besst:false },
+  MAT: { label:'Mat. Básicos',   color:'bb-mat', icon:'⛏️', besst:false },
+  OIL: { label:'Petróleo/Gás',   color:'bb-oil', icon:'🛢️', besst:false },
+  IMB: { label:'Imóveis/FII',    color:'bb-imb', icon:'🏢', besst:false },
+  RET: { label:'Varejo',         color:'bb-ret', icon:'🏪', besst:false },
+  AGR: { label:'Agronegócio',    color:'bb-agr', icon:'🌾', besst:false },
+  TEC: { label:'Tecnologia',     color:'bb-tec', icon:'💻', besst:false },
+  SAU: { label:'Saúde',          color:'bb-sau', icon:'🏥', besst:false },
+  EDU: { label:'Educação',       color:'bb-edu', icon:'🎓', besst:false },
+  TRP: { label:'Transporte',     color:'bb-trp', icon:'🚛', besst:false },
+  OUT: { label:'Outros',         color:'bb-out', icon:'📦', besst:false },
 };
 
-// Tickers brasileiros conhecidos por categoria
-const BESST_TICKERS = {
-  B:  ['BBAS','BBDC','ITUB','ITSA','SANB','BRSR','BPAN','PINE','BMGB','ABCB','BNBR','BRBI','BPAC'],
-  E:  ['TAEE','EGIE','CMIG','CPFE','ENGI','AESB','AURE','ENEV','NEOE','ELET','TRPL','ALUP','ISAE','CEEB','COCE','EMAE','ENMA','EQTL','CPLE','CLSC'],
-  S1: ['SAPR','SBSP','CSMG','AMBP','FIQE'],
-  S2: ['BBSE','PSSA','SULA','IRBR','CXSE','WIZC'],
-  T:  ['VIVT','TIMS','OIBR','TELB'],
+// Tickers B3 mapeados manualmente por setor
+const TICKER_MAP = {
+  // Bancos
+  B:  ['BBAS','BBDC','ITUB','ITSA','SANB','BRSR','BPAN','PINE','BMGB','ABCB','BNBR','BRBI','BPAC','MODL','CSUD'],
+  // Energia elétrica
+  E:  ['TAEE','EGIE','CMIG','CPFE','ENGI','AESB','AURE','ENEV','NEOE','ELET','TRPL','ALUP','ISAE','CEEB','COCE','EMAE','ENMA','EQTL','CPLE','CLSC','ENBR','CBEE','AFLT','AELP','RLAM'],
+  // Saneamento
+  S1: ['SAPR','SBSP','CSMG','AMBP','FIQE','CORR'],
+  // Seguros/Previdência
+  S2: ['BBSE','PSSA','SULA','IRBR','CXSE','WIZC','APER'],
+  // Telecom
+  T:  ['VIVT','TIMS','OIBR','TELB','FONE'],
+  // Petróleo e Gás
+  OIL:['PETR','RECV','PRIO','BRAV','RRRP','CSAN','VBBR','RAIZ','UGPA','PETT'],
+  // Mineração / Siderurgia / Mat Básicos
+  MAT:['VALE','GGBR','GOAU','CSNA','USIM','CMIN','FESA','SHUL','BRAP','CBAV','COKE','RANI','KLBN','SUZB','DXCO'],
+  // Indústria / Mecânica / Autopeças
+  IND:['WEGE','TUPY','RAPT','FRAS','LEVE','KEPL','ROMI','MYPK','POMO','EMBR','EMMO','MILS','IOCHP'],
+  // Varejo / Consumo não-essencial
+  RET:['LREN','MGLU','AMER','SBFG','SOMA','AZZA','LJQQ','CEAB','PETZ','VIVA','PCAR','CRFB','ASAI','MATD'],
+  // Consumo / Alimentos / Bebidas
+  CON:['ABEV','JBSS','BRFS','BEEF','CAML','SMTO','SLCE','MDIA','SOJA','AGRO','TTEN','MLAS'],
+  // Imóveis / Construção / FIIs
+  IMB:['MRVE','CYRE','EVEN','EZTC','DIRR','HBRE','JHSF','TEND','ALOS','MULT','BRML','IGTI','LOGG','BTLG','HGBS','XPML','PVBI'],
+  // Agronegócio
+  AGR:['SLCE','SOJA','SMTO','AGRO','TERRA','STBP'],
+  // Tecnologia / Software
+  TEC:['TOTVS','LWSA','DMMO','CASH','DESK','POSI','TOTS','INTB','BMOB'],
+  // Saúde
+  SAU:['RDOR','HAPV','FLRY','DASA','QUAL','BLAU','ONCO','PNVL','CMIN'],
+  // Educação
+  EDU:['COGN','YDUQ','ANIM','SEER','CSED'],
+  // Transporte / Logística
+  TRP:['RAIL','ECOR','GOLL','AZUL','JSLG','VAMO','SIMH','LOGG','PORT','STBP'],
 };
 
-function detectBESST(symbol, sectorAll) {
+function detectSector(symbol, sectorAll) {
   const tk = symbol.replace(/\d+$/,'').toUpperCase();
-  for (const [cat, list] of Object.entries(BESST_TICKERS)) {
-    if (list.some(t => tk.startsWith(t))) return cat;
+  // 1. Tenta pelo ticker mapeado manualmente
+  for (const [cat, list] of Object.entries(TICKER_MAP)) {
+    if (list.some(t => tk === t || tk.startsWith(t))) return cat;
   }
-  // Fallback por setor Yahoo Finance
-  if (/bank|financ.*serv/.test(sectorAll) && !/insur/.test(sectorAll)) return 'B';
-  if (/insur/.test(sectorAll)) return 'S2';
-  if (/utilit|electric|power/.test(sectorAll) && !/water|sanit|sewag/.test(sectorAll)) return 'E';
+  // 2. Fallback por string do setor Yahoo Finance
+  if (/bank|financ.*serv|credit/.test(sectorAll) && !/insur/.test(sectorAll)) return 'B';
+  if (/insur|previdenc/.test(sectorAll)) return 'S2';
   if (/water|sanit|sewag/.test(sectorAll)) return 'S1';
+  if (/utilit|electric|power|energy/.test(sectorAll)) return 'E';
   if (/telecom|communic/.test(sectorAll)) return 'T';
-  return 'X';
+  if (/oil|gas|petrole|fuel/.test(sectorAll)) return 'OIL';
+  if (/mining|metal|steel|miner|siderur|iron|copper|celulo|paper/.test(sectorAll)) return 'MAT';
+  if (/industri|manufactur|machinery|autopart|aerospace|defense/.test(sectorAll)) return 'IND';
+  if (/real.?estate|reit|imov|constru|incorpor/.test(sectorAll)) return 'IMB';
+  if (/retail|varejo|apparel|footwear|department/.test(sectorAll)) return 'RET';
+  if (/food|beverage|packag|consumer.*staple|aliment|frigorif/.test(sectorAll)) return 'CON';
+  if (/agric|agro|crop|sugar|soy/.test(sectorAll)) return 'AGR';
+  if (/technolog|software|internet|semicon/.test(sectorAll)) return 'TEC';
+  if (/health|hospital|pharma|medic|saude/.test(sectorAll)) return 'SAU';
+  if (/educat|ensino|universit/.test(sectorAll)) return 'EDU';
+  if (/transport|logistic|airline|railroad|shipping/.test(sectorAll)) return 'TRP';
+  return 'OUT';
 }
 
-function besstBadge(cat) {
-  const b = BESST_MAP[cat] || BESST_MAP.X;
-  return `<span class="besst-badge ${b.color}">${b.icon} ${b.label}</span>`;
+function isBESST(cat) { return SECTOR_MAP[cat]?.besst === true; }
+
+function sectorBadge(cat) {
+  const s = SECTOR_MAP[cat] || SECTOR_MAP.OUT;
+  const ring = s.besst ? ' style="box-shadow:0 0 0 1px rgba(200,130,12,.5)"' : '';
+  return `<span class="besst-badge ${s.color}"${ring}>${s.icon} ${s.label}</span>`;
 }
 
 // ══════════════════════════════════════════════
@@ -396,7 +465,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const h52w=parseFloat(data.fiftyTwoWeekHigh)||0;
   const name=data.shortName||data.longName||data.symbol||'';
   const sectorAll=((data.sector||'')+' '+(data.industry||'')).toLowerCase();
-  const besstCat=detectBESST(data.symbol||'',sectorAll);
+  const besstCat=detectSector(data.symbol||'',sectorAll);
 
   // ── Dividends — 5-year average (mais estável) ──
   const divs=data.dividendsHistory||[];
@@ -433,7 +502,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const precoGraham=lpa>0&&vpa>0?Math.sqrt(22.5*lpa*vpa):0;
   const precoGordon=divBase>0?(divBase*1.02)/(0.10-0.02):0;
 
-  const isBESST=besstCat!=='X';
+  const besst=isBESST(besstCat);
   const isCiclic=/oil|gas|mining|metal|steel|agric|celulo|paper|coal|petroleo|miner|siderur/.test(sectorAll);
   const queda52w=h52w>0?(price-h52w)/h52w*100:0;
 
@@ -452,7 +521,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   else alertas.push('Sem histórico suficiente');
   if(dlEbitda!==null&&dlEbitda<=3.0) score+=2;
   else if(dlEbitda!==null&&dlEbitda>3.0) alertas.push(`Dívida alta (DL/EBITDA: ${dlEbitda.toFixed(1)}x)`);
-  if(isBESST) score+=1;
+  if(besst) score+=1;
   if(isCiclic){score-=1;alertas.push('Setor cíclico');}
   if(payout!==null){
     if(payout>=0.20&&payout<=0.85) score+=1;
@@ -526,7 +595,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
     dlEbitda,lpa,vpa,pl,
     roe:parseFloat(data.returnOnEquity)||0,
     score,status,bc,alertas,sig,varPerc,queda52w,ey,
-    besstCat,isBESST,isCiclic,
+    besstCat,isBESST:besst,isCiclic,
     dataComStr,dataComDias,dataComStatus,
     lastDividendValue: data.lastDividendValue ?? null,
   };
@@ -543,7 +612,7 @@ function calcRanking(items){
 
 // ── Sector Distribution Chart ──────────────────
 function sectorChartHtml(items){
-  // Agrupa por BESST
+  // Agrupa por setor
   const groups={};
   let totalVal=0;
   items.forEach(item=>{
@@ -562,7 +631,7 @@ function sectorChartHtml(items){
 
   const IDEAL=30;
   const rowsHtml=rows.map(r=>{
-    const b=BESST_MAP[r.cat]||BESST_MAP.X;
+    const b=SECTOR_MAP[r.cat]||SECTOR_MAP.OUT;
     const over=r.pct>IDEAL;
     const near=r.pct>=IDEAL*0.85&&r.pct<=IDEAL;
     const fillColor=over?'var(--red-lt)':near?'var(--amber-lt)':'var(--green-lt)';
@@ -570,7 +639,7 @@ function sectorChartHtml(items){
     const warn=over?`<span class="sector-warn" style="color:var(--red-lt);background:rgba(185,28,28,.1);border:1px solid rgba(185,28,28,.25)">▲ ${(r.pct-IDEAL).toFixed(0)}% acima</span>`
                :near?`<span class="sector-warn" style="color:var(--amber-lt)">≈ limite</span>`:'';
     return `<div class="sector-row">
-      <div class="sector-label">${besstBadge(r.cat)}</div>
+      <div class="sector-label">${sectorBadge(r.cat)}</div>
       <div><div class="sector-track"><div class="sector-fill" style="width:${Math.min(100,r.pct)}%;background:${fillColor}"></div></div>
       <div class="sector-tickers">${r.tickers.join(', ')}</div></div>
       <div class="sector-pct ${pctColor}">${r.pct.toFixed(1)}%</div>
@@ -583,11 +652,11 @@ function sectorChartHtml(items){
 
   // Se não tem valor financeiro, usa contagem
   const rowsCount=!hasFin?rows.map(r=>{
-    const b=BESST_MAP[r.cat]||BESST_MAP.X;
+    const b=SECTOR_MAP[r.cat]||SECTOR_MAP.OUT;
     const pct=r.tickers.length/items.length*100;
     const fillColor=pct>IDEAL?'var(--red-lt)':pct>=IDEAL*0.85?'var(--amber-lt)':'var(--green-lt)';
     return `<div class="sector-row">
-      <div class="sector-label">${besstBadge(r.cat)}</div>
+      <div class="sector-label">${sectorBadge(r.cat)}</div>
       <div><div class="sector-track"><div class="sector-fill" style="width:${pct}%;background:${fillColor}"></div></div>
       <div class="sector-tickers">${r.tickers.join(', ')}</div></div>
       <div class="sector-pct">${pct.toFixed(0)}%</div><div></div>
@@ -615,7 +684,7 @@ function buildRational(item,pos){
   }
   if(item.yearsDiv>=5) parts.push(`5 anos consecutivos de dividendos`);
   else if(item.yearsDiv>=4) parts.push(`${item.yearsDiv} anos pagando dividendos`);
-  if(item.isBESST&&b) parts.push(`setor ${b.label} (${b.icon} BESST Barsi) — receita previsível e regulada`);
+  if(besst&&b) parts.push(`setor ${b.label} (${b.icon} BESST Barsi) — receita previsível e regulada`); }
   if(item.dlEbitda!==null&&item.dlEbitda<=1.5) parts.push(`baixíssima alavancagem (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
   else if(item.dlEbitda!==null&&item.dlEbitda<=3) parts.push(`dívida controlada (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
   if(pos===0) parts.push(`melhor posição no ranking Greenblatt da watchlist`);
@@ -663,7 +732,7 @@ function portfolioRow(item){
   const dlH=item.dlEbitda!==null?`<span class="mono ${item.dlEbitda<=3?'c-green':'c-red'}">${item.dlEbitda.toFixed(1)}x</span>`:'<span class="no-data">—</span>';
   return `<tr>
     <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
-    <td>${besstBadge(item.besstCat)}</td>
+    <td>${sectorBadge(item.besstCat)}</td>
     <td class="mono">${item.avgPrice?'R$'+item.avgPrice.toFixed(2):'—'}</td>
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
     <td>${varH}</td>
@@ -685,7 +754,7 @@ function watchlistRow(item){
   return `<tr>
     <td class="mono c-dim" style="text-align:center;font-size:.78rem">#${item.rank||'—'}</td>
     <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
-    <td>${besstBadge(item.besstCat)}</td>
+    <td>${sectorBadge(item.besstCat)}</td>
     <td>${scoreHtml(item.score)}</td>
     <td><span class="badge ${item.bc}">${item.status}</span></td>
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
@@ -804,7 +873,7 @@ function reRenderWatchlist(){
         <div class="dca-item-top">
           <span class="dca-pos">${i+1}º</span>
           <span class="dca-ticker">${item.symbol}</span>
-          ${besstBadge(item.besstCat)}
+          ${sectorBadge(item.besstCat)}
           <span class="dca-metrics">Score ${item.score}/11 · DY ${item.dy.toFixed(1)}%${item.margem!==null?` · Margem ${item.margem>=0?'+':''}${item.margem.toFixed(1)}%`:''} · Teto R$${item.tetoBazin>0?item.tetoBazin.toFixed(2):'—'}</span>
           <span class="dca-amount">R$${(amounts[i]||400).toLocaleString('pt-BR')}</span>
         </div>
@@ -815,7 +884,7 @@ function reRenderWatchlist(){
   const cf=_wData.filter(i=>i.status.includes('FORTE')).length;
   const c=_wData.filter(i=>i.status==='COMPRA').length;
   const a=_wData.filter(i=>i.status==='AGUARDAR').length;
-  const besst=_wData.filter(i=>i.besstCat!=='X').length;
+  const besst=_wData.filter(i=>isBESST(i.besstCat)).length;
   const summaryHtml=`<div class="summary-grid">
     <div class="summary-card hl-gold"><div class="s-label">★ Compra Forte</div><div class="s-value">${cf}</div></div>
     <div class="summary-card"><div class="s-label">✓ Compra</div><div class="s-value c-blue">${c}</div></div>

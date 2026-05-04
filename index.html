@@ -673,18 +673,18 @@ function sectorChartHtml(items){
 // ── Racional DCA ──────────────────────────────
 function buildRational(item,pos){
   const parts=[];
-  const b=BESST_MAP[item.besstCat];
+  const s=SECTOR_MAP[item.besstCat]||SECTOR_MAP.OUT;
   if(item.score>=9) parts.push(`score máximo (${item.score}/11) — passa em todos os critérios Bazin`);
   else if(item.score>=7) parts.push(`score sólido de ${item.score}/11`);
   if(item.dy>=8) parts.push(`DY de ${item.dy.toFixed(1)}% — renda acima da média`);
   else if(item.dy>=6) parts.push(`DY de ${item.dy.toFixed(1)}% — mínimo Bazin atendido`);
   if(item.margem!==null){
-    if(item.margem>=20) parts.push(`${item.margem.toFixed(0)}% abaixo do teto Bazin (média 5 anos) — excelente margem`);
+    if(item.margem>=20) parts.push(`${item.margem.toFixed(0)}% abaixo do teto Bazin — excelente margem`);
     else if(item.margem>=10) parts.push(`${item.margem.toFixed(0)}% abaixo do teto Bazin — boa margem de entrada`);
   }
   if(item.yearsDiv>=5) parts.push(`5 anos consecutivos de dividendos`);
   else if(item.yearsDiv>=4) parts.push(`${item.yearsDiv} anos pagando dividendos`);
-  if(besst&&b) parts.push(`setor ${b.label} (${b.icon} BESST Barsi) — receita previsível e regulada`); }
+  if(item.isBESST&&s.besst) parts.push(`setor ${s.label} (${s.icon} BESST Barsi) — receita previsível e regulada`);
   if(item.dlEbitda!==null&&item.dlEbitda<=1.5) parts.push(`baixíssima alavancagem (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
   else if(item.dlEbitda!==null&&item.dlEbitda<=3) parts.push(`dívida controlada (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
   if(pos===0) parts.push(`melhor posição no ranking Greenblatt da watchlist`);

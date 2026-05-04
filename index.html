@@ -21,21 +21,15 @@
 html{font-size:14px;scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .container{max-width:1440px;margin:0 auto;padding:0 1.5rem}
-
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.1rem 0;position:sticky;top:0;z-index:100}
 .header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .logo h1{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:600;color:var(--gold-lt);letter-spacing:2px}
 .logo span{font-size:.68rem;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-left:.6rem}
-
 .tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem}
 .tab-nav{display:flex}
 .tab-btn{background:none;border:none;color:var(--text-dim);padding:.85rem 1.5rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;border-bottom:2px solid transparent;transition:all .2s}
-.tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--gold-lt);border-color:var(--gold-lt)}
-
-.tab-content{display:none;padding:2rem 0}
-.tab-content.active{display:block}
-
+.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--gold-lt);border-color:var(--gold-lt)}
+.tab-content{display:none;padding:2rem 0}.tab-content.active{display:block}
 .input-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
 .input-card h3{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold-lt);margin-bottom:1.25rem;letter-spacing:1px}
 .input-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end}
@@ -50,11 +44,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .btn-analyze{background:linear-gradient(135deg,var(--gold),var(--gold-lt));color:#000;font-weight:600;padding:.6rem 1.75rem;letter-spacing:.5px}
 .btn-analyze:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,130,12,.35)}
 .btn-analyze:disabled{opacity:.4;cursor:not-allowed;transform:none}
-
 .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 1.25rem;min-height:1px}
 .chip{background:var(--surface3);border:1px solid var(--border2);border-radius:20px;padding:.28rem .85rem;font-size:.77rem;display:flex;align-items:center;gap:.5rem;font-family:var(--mono)}
-.chip span{color:var(--gold-lt);font-weight:600}
-.chip em{color:var(--text-dim);font-style:normal;font-size:.72rem}
+.chip span{color:var(--gold-lt);font-weight:600}.chip em{color:var(--text-dim);font-style:normal;font-size:.72rem}
 .chip button{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.95rem;padding:0;line-height:1}
 .chip button:hover{color:var(--red-lt)}
 
@@ -79,14 +71,35 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .s-sub{font-size:.72rem;color:var(--text-dim);margin-top:.2rem}
 .hl-gold{border-color:var(--gold)}.hl-gold .s-value{color:var(--gold-lt)}
 
+/* SECTOR CHART */
+.sector-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.sector-card h3{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold-lt);margin-bottom:1.25rem;letter-spacing:1px;display:flex;align-items:center;gap:.6rem}
+.sector-card h3 small{font-family:'DM Sans',sans-serif;font-size:.68rem;color:var(--text-dim);font-weight:400;letter-spacing:.5px}
+.sector-rows{display:flex;flex-direction:column;gap:.65rem}
+.sector-row{display:grid;grid-template-columns:130px 1fr 55px 65px;align-items:center;gap:.75rem}
+.sector-label{font-size:.78rem;color:var(--text);white-space:nowrap;display:flex;align-items:center;gap:.4rem}
+.sector-track{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.sector-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.sector-pct{font-family:var(--mono);font-size:.8rem;font-weight:600;text-align:right}
+.sector-tickers{font-size:.68rem;color:var(--text-dim)}
+.sector-warn{font-size:.68rem;border-radius:4px;padding:.15rem .45rem;white-space:nowrap}
+.sector-divider{height:1px;background:var(--border);margin:.5rem 0}
+.besst-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:10px;font-size:.65rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.bb-B{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+.bb-E{background:rgba(250,204,21,.12);color:#fde047;border:1px solid rgba(250,204,21,.3)}
+.bb-S1{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.3)}
+.bb-S2{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)}
+.bb-T{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
+.bb-X{background:rgba(148,163,184,.08);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+
 /* DCA CARD */
 .dca-card{background:linear-gradient(135deg,rgba(200,130,12,.07),rgba(200,130,12,.02));border:1px solid rgba(200,130,12,.28);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
 .dca-card h3{font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem}
 .dca-items{display:flex;flex-direction:column;gap:.75rem}
 .dca-item{padding:.85rem 1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border)}
-.dca-item-top{display:flex;align-items:center;gap:1rem;margin-bottom:.5rem}
+.dca-item-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem;flex-wrap:wrap}
 .dca-pos{font-size:.7rem;color:var(--text-dim);min-width:1.5rem}
-.dca-ticker{font-family:var(--mono);font-weight:600;color:var(--gold-lt);min-width:65px}
+.dca-ticker{font-family:var(--mono);font-weight:600;color:var(--gold-lt);min-width:60px}
 .dca-metrics{font-size:.77rem;color:var(--text-dim);flex:1;display:flex;gap:1rem;flex-wrap:wrap}
 .dca-amount{font-family:var(--mono);font-weight:600;color:var(--green-lt);font-size:.9rem;white-space:nowrap}
 .dca-rational{font-size:.75rem;color:var(--text-dim);line-height:1.55;padding:.5rem .75rem;background:rgba(200,130,12,.05);border-left:2px solid rgba(200,130,12,.4);border-radius:0 6px 6px 0}
@@ -95,20 +108,14 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:.8rem}
 thead tr{background:var(--surface2);border-bottom:1px solid var(--border)}
-th{padding:.7rem 1rem;text-align:left;font-size:.66rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
-th:hover{color:var(--gold-lt)}
-th.sort-active{color:var(--gold-lt)}
-th .sort-icon{margin-left:.3rem;opacity:.5}
-th.sort-active .sort-icon{opacity:1}
+th{padding:.7rem 1rem;text-align:left;font-size:.66rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
 td{padding:.65rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface2)}
-
 .ticker-cell{display:flex;align-items:center;gap:.6rem}
 .t-logo-fb{width:26px;height:26px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--gold-lt);flex-shrink:0}
 .t-name{font-family:var(--mono);font-weight:600;font-size:.84rem;color:var(--text-br)}
-.t-sub{font-size:.68rem;color:var(--text-dim);max-width:140px;overflow:hidden;text-overflow:ellipsis}
-
+.t-sub{font-size:.68rem;color:var(--text-dim);max-width:130px;overflow:hidden;text-overflow:ellipsis}
 .badge{display:inline-flex;align-items:center;padding:.22rem .65rem;border-radius:20px;font-size:.68rem;font-weight:600;letter-spacing:.3px;white-space:nowrap}
 .b-cf{background:rgba(22,163,74,.15);color:#4ade80;border:1px solid rgba(22,163,74,.3)}
 .b-c {background:rgba(29,78,216,.12);color:#60a5fa;border:1px solid rgba(29,78,216,.3)}
@@ -118,54 +125,44 @@ tr:hover td{background:var(--surface2)}
 .b-s2{background:rgba(234,88,12,.12);color:#fb923c;border:1px solid rgba(234,88,12,.3)}
 .b-s1{background:rgba(202,138,4,.12);color:#fbbf24;border:1px solid rgba(202,138,4,.3)}
 .b-h {background:rgba(22,163,74,.08); color:#4ade80;border:1px solid rgba(22,163,74,.2)}
-
 .score-wrap{display:flex;align-items:center;gap:.5rem}
 .score-num{font-family:var(--mono);font-weight:600;font-size:.88rem;min-width:18px}
 .score-bar{height:4px;border-radius:2px;background:var(--border2);min-width:48px;overflow:hidden}
 .score-fill{height:100%;border-radius:2px}
-
-.alert-list{display:flex;flex-direction:column;gap:.22rem;max-width:230px}
+.alert-list{display:flex;flex-direction:column;gap:.22rem;max-width:220px}
 .alert-item{font-size:.68rem;color:var(--amber-lt);white-space:normal;line-height:1.35}
 .no-data{font-size:.72rem;color:var(--text-dim)}
-
 .mono{font-family:var(--mono)}
 .c-green{color:var(--green-lt)}.c-red{color:var(--red-lt)}.c-amber{color:var(--amber-lt)}.c-gold{color:var(--gold-lt)}.c-dim{color:var(--text-dim)}
-
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .section-header h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text-br)}
 .section-header span{font-size:.72rem;color:var(--text-dim)}
 .footnote{margin-top:.75rem;font-size:.68rem;color:var(--text-dim);line-height:1.6}
-
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem}
 .spinner{width:34px;height:34px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading p{font-size:.82rem;color:var(--text-dim);font-family:var(--mono)}
 .empty{text-align:center;padding:3.5rem 1rem;color:var(--text-dim);font-size:.88rem}
 .empty .icon{font-size:2.5rem;display:block;margin-bottom:.75rem}
-
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:.75rem 1.25rem;font-size:.8rem;color:var(--text);z-index:9999;transform:translateY(120px);opacity:0;transition:all .3s ease;max-width:360px;line-height:1.5}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.error{border-color:var(--red)}.toast.success{border-color:var(--green)}
-
 @media(max-width:768px){
-  .input-row{flex-direction:column}
-  .input-group input{width:100% !important}
-  .dca-metrics{display:none}
-  .filter-count{display:none}
+  .input-row{flex-direction:column}.input-group input{width:100% !important}
+  .dca-metrics{display:none}.filter-count{display:none}
+  .sector-row{grid-template-columns:100px 1fr 45px}
 }
 </style>
 </head>
 <body>
-
 <header>
   <div class="container">
     <div class="header-inner">
       <div class="logo"><h1>BAZIN ANALYTICS<span>Carteira de Dividendos</span></h1></div>
-      <span style="font-size:.72rem;color:var(--text-dim)">Yahoo Finance · Estratégia Décio Bazin</span>
+      <span style="font-size:.72rem;color:var(--text-dim)">Yahoo Finance · Estratégia Décio Bazin · BESST Barsi</span>
     </div>
   </div>
 </header>
-
 <div class="tabs">
   <div class="container">
     <nav class="tab-nav">
@@ -218,58 +215,88 @@ tr:hover td{background:var(--surface2)}
     <div id="watchlistResults"></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════════
+//  BESST — Classificação Barsi
+// ══════════════════════════════════════════════
+const BESST_MAP = {
+  B: { label:'Bancos',    color:'bb-B', icon:'🏦' },
+  E: { label:'Energia',   color:'bb-E', icon:'⚡' },
+  S1:{ label:'Saneamento',color:'bb-S1',icon:'🚰' },
+  S2:{ label:'Seguros',   color:'bb-S2',icon:'🛡️' },
+  T: { label:'Telecom',   color:'bb-T', icon:'📡' },
+  X: { label:'Fora BESST',color:'bb-X', icon:'⚪' },
+};
+
+// Tickers brasileiros conhecidos por categoria
+const BESST_TICKERS = {
+  B:  ['BBAS','BBDC','ITUB','ITSA','SANB','BRSR','BPAN','PINE','BMGB','ABCB','BNBR','BRBI','BPAC'],
+  E:  ['TAEE','EGIE','CMIG','CPFE','ENGI','AESB','AURE','ENEV','NEOE','ELET','TRPL','ALUP','ISAE','CEEB','COCE','EMAE','ENMA','EQTL','CPLE','CLSC'],
+  S1: ['SAPR','SBSP','CSMG','AMBP','FIQE'],
+  S2: ['BBSE','PSSA','SULA','IRBR','CXSE','WIZC'],
+  T:  ['VIVT','TIMS','OIBR','TELB'],
+};
+
+function detectBESST(symbol, sectorAll) {
+  const tk = symbol.replace(/\d+$/,'').toUpperCase();
+  for (const [cat, list] of Object.entries(BESST_TICKERS)) {
+    if (list.some(t => tk.startsWith(t))) return cat;
+  }
+  // Fallback por setor Yahoo Finance
+  if (/bank|financ.*serv/.test(sectorAll) && !/insur/.test(sectorAll)) return 'B';
+  if (/insur/.test(sectorAll)) return 'S2';
+  if (/utilit|electric|power/.test(sectorAll) && !/water|sanit|sewag/.test(sectorAll)) return 'E';
+  if (/water|sanit|sewag/.test(sectorAll)) return 'S1';
+  if (/telecom|communic/.test(sectorAll)) return 'T';
+  return 'X';
+}
+
+function besstBadge(cat) {
+  const b = BESST_MAP[cat] || BESST_MAP.X;
+  return `<span class="besst-badge ${b.color}">${b.icon} ${b.label}</span>`;
+}
+
+// ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
 const S = { portfolio:[], watchlist:[] };
-// Sort/filter state per tab
 const FS = {
-  portfolio: { filter:'all', sortKey:'score', sortDir:-1 },
-  watchlist:  { filter:'all', sortKey:'rank',  sortDir: 1 },
+  portfolio:{ filter:'all', sortKey:'score', sortDir:-1 },
+  watchlist: { filter:'all', sortKey:'rank',  sortDir: 1 },
 };
-let _pData = [], _wData = [];
+let _pData=[], _wData=[];
 
 function init() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('bazin_v3') || '{}');
-    S.portfolio = saved.portfolio || [];
-    S.watchlist  = saved.watchlist  || [];
-  } catch(e) {}
+  try { const sv=JSON.parse(localStorage.getItem('bazin_v3')||'{}'); S.portfolio=sv.portfolio||[]; S.watchlist=sv.watchlist||[]; } catch(e){}
   renderChips(); updateHints();
 }
-function save() { localStorage.setItem('bazin_v3', JSON.stringify(S)); }
+function save(){ localStorage.setItem('bazin_v3',JSON.stringify(S)); }
 
-// ── UI ─────────────────────────────────────────
-function switchTab(tab, btn) {
+function switchTab(tab,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active'); btn.classList.add('active');
 }
 let _tt;
-function toast(msg, type='info', dur=3500) {
+function toast(msg,type='info',dur=3500){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className='toast show '+type;
   clearTimeout(_tt); _tt=setTimeout(()=>el.className='toast',dur);
 }
-function updateHints() {
-  const ph=document.getElementById('hintP'), wh=document.getElementById('hintW');
+function updateHints(){
+  const ph=document.getElementById('hintP'),wh=document.getElementById('hintW');
   if(ph) ph.textContent=S.portfolio.length?`${S.portfolio.length} ativo(s)`:'';
   if(wh) wh.textContent=S.watchlist.length ?`${S.watchlist.length} ativo(s)` :'';
 }
-function renderChips() {
+function renderChips(){
   document.getElementById('portfolioChips').innerHTML=
-    S.portfolio.map(item=>`<div class="chip"><span>${item.ticker}</span><em>PM R$${parseFloat(item.avgPrice).toFixed(2)}${item.qty?' · '+item.qty+' un':''}</em><button onclick="removeP('${item.id}')">×</button></div>`).join('');
+    S.portfolio.map(i=>`<div class="chip"><span>${i.ticker}</span><em>PM R$${parseFloat(i.avgPrice).toFixed(2)}${i.qty?' · '+i.qty+' un':''}</em><button onclick="removeP('${i.id}')">×</button></div>`).join('');
   document.getElementById('watchlistChips').innerHTML=
-    S.watchlist.map(item=>`<div class="chip"><span>${item.ticker}</span><button onclick="removeW('${item.id}')">×</button></div>`).join('');
+    S.watchlist.map(i=>`<div class="chip"><span>${i.ticker}</span><button onclick="removeW('${i.id}')">×</button></div>`).join('');
 }
-
-// ── Add/Remove ─────────────────────────────────
-function addPortfolio() {
+function addPortfolio(){
   const ticker=document.getElementById('pTicker').value.trim().toUpperCase().replace('.SA','');
   const price=parseFloat(document.getElementById('pPrice').value);
   const qty=parseInt(document.getElementById('pQty').value)||null;
@@ -282,96 +309,73 @@ function addPortfolio() {
   document.getElementById('pTicker').focus();
 }
 function removeP(id){S.portfolio=S.portfolio.filter(p=>p.id!==id);save();renderChips();updateHints();}
-function addWatchlist() {
+function addWatchlist(){
   const raw=document.getElementById('wTicker').value.trim().toUpperCase();
   if(!raw) return toast('Informe o ticker','error');
   const tickers=raw.split(/[,\s;]+/).map(t=>t.replace('.SA','').trim()).filter(Boolean);
   let added=0;
-  tickers.forEach(ticker=>{
-    if(!S.watchlist.find(w=>w.ticker===ticker)){S.watchlist.push({id:crypto.randomUUID(),ticker});added++;}
-  });
+  tickers.forEach(ticker=>{ if(!S.watchlist.find(w=>w.ticker===ticker)){S.watchlist.push({id:crypto.randomUUID(),ticker});added++;} });
   if(!added) return toast('Ticker(s) já estão na watchlist','error');
-  save(); renderChips(); updateHints();
-  document.getElementById('wTicker').value='';
+  save(); renderChips(); updateHints(); document.getElementById('wTicker').value='';
 }
 function removeW(id){S.watchlist=S.watchlist.filter(w=>w.id!==id);save();renderChips();updateHints();}
 
-// ══════════════════════════════════════════════
-//  FILTER BAR HTML
-// ══════════════════════════════════════════════
-function filterBarHtml(tab, total, filtered) {
-  const fs = FS[tab];
-  const statuses = [
-    {k:'all',     label:'Todos'},
-    {k:'cf',      label:'★ Compra Forte'},
-    {k:'compra',  label:'Compra'},
-    {k:'aguardar',label:'Aguardar'},
-    {k:'reavaliar',label:'Reavaliar'},
+// ── Filter / Sort ──────────────────────────────
+function filterBarHtml(tab,total,filtered){
+  const fs=FS[tab];
+  const statuses=[
+    {k:'all',label:'Todos'},{k:'cf',label:'★ Compra Forte'},
+    {k:'compra',label:'Compra'},{k:'aguardar',label:'Aguardar'},
+    {k:'reavaliar',label:'Reavaliar'},{k:'besst',label:'Só BESST'},
   ];
-  const sorts = tab === 'portfolio'
-    ? [{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'varPerc',l:'Variação'},{k:'symbol',l:'Ticker'}]
-    : [{k:'rank',l:'Ranking'},{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'yearsDiv',l:'Consistência'},{k:'symbol',l:'Ticker'}];
-
+  const sorts=tab==='portfolio'
+    ?[{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'varPerc',l:'Variação'},{k:'symbol',l:'Ticker'}]
+    :[{k:'rank',l:'Ranking'},{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'yearsDiv',l:'Consistência'},{k:'symbol',l:'Ticker'}];
   return `<div class="filter-bar">
     <label>Filtro:</label>
     ${statuses.map(s=>`<button class="filter-btn${fs.filter===s.k?' active':''}" onclick="setFilter('${tab}','${s.k}')">${s.label}</button>`).join('')}
     <div class="filter-sep"></div>
     <label>Ordenar:</label>
-    <select class="sort-select" onchange="setSort('${tab}',this.value)">
-      ${sorts.map(s=>`<option value="${s.k}"${fs.sortKey===s.k?' selected':''}>${s.l}</option>`).join('')}
-    </select>
-    <div class="sort-dir" onclick="toggleSortDir('${tab}')" title="Inverter ordem">${fs.sortDir===-1?'↓':'↑'}</div>
+    <select class="sort-select" onchange="setSort('${tab}',this.value)">${sorts.map(s=>`<option value="${s.k}"${fs.sortKey===s.k?' selected':''}>${s.l}</option>`).join('')}</select>
+    <div class="sort-dir" onclick="toggleSortDir('${tab}')">${fs.sortDir===-1?'↓':'↑'}</div>
     <span class="filter-count">${filtered} de ${total} ativo(s)</span>
   </div>`;
 }
-
-function setFilter(tab, val) {
-  FS[tab].filter = val;
-  tab === 'portfolio' ? reRenderPortfolio() : reRenderWatchlist();
-}
-function setSort(tab, key) {
-  FS[tab].sortKey = key;
-  tab === 'portfolio' ? reRenderPortfolio() : reRenderWatchlist();
-}
-function toggleSortDir(tab) {
-  FS[tab].sortDir *= -1;
-  tab === 'portfolio' ? reRenderPortfolio() : reRenderWatchlist();
-}
-
-function applyFilterSort(items, tab) {
-  const fs = FS[tab];
-  let out = items.filter(item => {
-    if (fs.filter === 'all')      return true;
-    if (fs.filter === 'cf')       return item.status.includes('FORTE');
-    if (fs.filter === 'compra')   return item.status === 'COMPRA';
-    if (fs.filter === 'aguardar') return item.status === 'AGUARDAR';
-    if (fs.filter === 'reavaliar')return item.status === 'REAVALIAR';
+function setFilter(tab,val){FS[tab].filter=val;tab==='portfolio'?reRenderPortfolio():reRenderWatchlist();}
+function setSort(tab,key){FS[tab].sortKey=key;tab==='portfolio'?reRenderPortfolio():reRenderWatchlist();}
+function toggleSortDir(tab){FS[tab].sortDir*=-1;tab==='portfolio'?reRenderPortfolio():reRenderWatchlist();}
+function applyFilterSort(items,tab){
+  const fs=FS[tab];
+  let out=items.filter(item=>{
+    if(fs.filter==='all')       return true;
+    if(fs.filter==='cf')        return item.status.includes('FORTE');
+    if(fs.filter==='compra')    return item.status==='COMPRA';
+    if(fs.filter==='aguardar')  return item.status==='AGUARDAR';
+    if(fs.filter==='reavaliar') return item.status==='REAVALIAR';
+    if(fs.filter==='besst')     return item.besstCat !== 'X';
     return true;
   });
-  out.sort((a, b) => {
-    const k = fs.sortKey;
-    const va = a[k] ?? (fs.sortDir === -1 ? -Infinity : Infinity);
-    const vb = b[k] ?? (fs.sortDir === -1 ? -Infinity : Infinity);
-    if (typeof va === 'string') return fs.sortDir * va.localeCompare(vb);
-    return fs.sortDir * (vb - va);
+  out.sort((a,b)=>{
+    const k=fs.sortKey;
+    const va=a[k]??(fs.sortDir===-1?-Infinity:Infinity);
+    const vb=b[k]??(fs.sortDir===-1?-Infinity:Infinity);
+    if(typeof va==='string') return fs.sortDir*va.localeCompare(vb);
+    return fs.sortDir*(vb-va);
   });
   return out;
 }
 
-// ══════════════════════════════════════════════
-//  API FETCH
-// ══════════════════════════════════════════════
-async function fetchStocks(tickers) {
-  const BATCH=8, results={};
-  for(let i=0;i<tickers.length;i+=BATCH) {
+// ── API ────────────────────────────────────────
+async function fetchStocks(tickers){
+  const BATCH=8,results={};
+  for(let i=0;i<tickers.length;i+=BATCH){
     const batch=tickers.slice(i,i+BATCH).join(',');
-    const url=`/.netlify/functions/quote?ticker=${encodeURIComponent(batch)}`;
-    try {
-      const res=await fetch(url);
+    try{
+      const res=await fetch(`/.netlify/functions/quote?ticker=${encodeURIComponent(batch)}`);
       if(!res.ok){const e=await res.json().catch(()=>({}));toast(`Erro ${res.status}: ${e.error||'API falhou'}`,'error');continue;}
       const json=await res.json();
       if(json.results) Object.assign(results,json.results);
-    } catch(e){console.error('Fetch:',e);toast('Erro de conexão','error');}
+    }catch(e){console.error('Fetch:',e);toast('Erro de conexão','error');}
   }
   return results;
 }
@@ -379,7 +383,7 @@ async function fetchStocks(tickers) {
 // ══════════════════════════════════════════════
 //  ANALYSIS ENGINE
 // ══════════════════════════════════════════════
-function analyzeStock(data, avgPrice=null, qty=null, totalPortValue=null) {
+function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const price=parseFloat(data.regularMarketPrice)||0;
   if(price<=0) return null;
   const lpa=parseFloat(data.earningsPerShare)||0;
@@ -388,23 +392,33 @@ function analyzeStock(data, avgPrice=null, qty=null, totalPortValue=null) {
   const h52w=parseFloat(data.fiftyTwoWeekHigh)||0;
   const name=data.shortName||data.longName||data.symbol||'';
   const sectorAll=((data.sector||'')+' '+(data.industry||'')).toLowerCase();
+  const besstCat=detectBESST(data.symbol||'',sectorAll);
 
+  // ── Dividends — 5-year average (mais estável) ──
   const divs=data.dividendsHistory||[];
-  const now=Date.now(), MS1Y=365*86400000, MS3Y=3*MS1Y, MS5Y=5*MS1Y;
+  const now=Date.now(),MS1Y=365*86400000;
   const d12m=divs.filter(d=>(now-new Date(d.date))<=MS1Y);
-  const d3y =divs.filter(d=>(now-new Date(d.date))<=MS3Y);
-  const d5y =divs.filter(d=>(now-new Date(d.date))<=MS5Y);
+  const d5y =divs.filter(d=>(now-new Date(d.date))<=5*MS1Y);
+  const d3y =divs.filter(d=>(now-new Date(d.date))<=3*MS1Y);
   const sumDiv=arr=>arr.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
   const divL12m=sumDiv(d12m);
 
-  const byYear3={};
-  d3y.forEach(d=>{const yr=new Date(d.date).getFullYear();byYear3[yr]=(byYear3[yr]||0)+(parseFloat(d.amount)||0);});
-  const years3=Object.values(byYear3);
-  const avg3y=years3.length>0?years3.reduce((a,b)=>a+b,0)/years3.length:0;
-  const divBase=avg3y>0&&divL12m>0?avg3y*0.6+divL12m*0.4:(avg3y||divL12m);
+  // Agrega por ano
+  function avgByYear(arr){
+    const byYr={};
+    arr.forEach(d=>{const yr=new Date(d.date).getFullYear();byYr[yr]=(byYr[yr]||0)+(parseFloat(d.amount)||0);});
+    const vals=Object.values(byYr).filter(v=>v>0);
+    return vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+  }
+  const avg5y=avgByYear(d5y);
+  const avg3y=avgByYear(d3y);
+
+  // Prioridade: 5a → 3a → L12M (mais estável)
+  const divBase=avg5y>0?avg5y:avg3y>0?avg3y:divL12m;
 
   const dy=price>0?divL12m/price:0;
 
+  // Consistência — anos pagando nos últimos 5 anos
   const byYear5={};
   d5y.forEach(d=>{const yr=new Date(d.date).getFullYear();byYear5[yr]=(byYear5[yr]||0)+(parseFloat(d.amount)||0);});
   const yearsDiv=Object.values(byYear5).filter(v=>v>0).length;
@@ -415,15 +429,14 @@ function analyzeStock(data, avgPrice=null, qty=null, totalPortValue=null) {
   const precoGraham=lpa>0&&vpa>0?Math.sqrt(22.5*lpa*vpa):0;
   const precoGordon=divBase>0?(divBase*1.02)/(0.10-0.02):0;
 
-  const isBESST=/bank|financ|insur|utilit|electric|water|sanit|telecom/.test(sectorAll);
+  const isBESST=besstCat!=='X';
   const isCiclic=/oil|gas|mining|metal|steel|agric|celulo|paper|coal|petroleo|miner|siderur/.test(sectorAll);
   const queda52w=h52w>0?(price-h52w)/h52w*100:0;
 
   const totalDebt=parseFloat(data.totalDebt)||0;
   const totalCash=parseFloat(data.totalCash)||0;
   const ebitda=parseFloat(data.ebitda)||0;
-  const netDebt=totalDebt-totalCash;
-  const dlEbitda=ebitda>0?netDebt/ebitda:null;
+  const dlEbitda=ebitda>0?(totalDebt-totalCash)/ebitda:null;
 
   let score=0;
   const alertas=[];
@@ -432,7 +445,7 @@ function analyzeStock(data, avgPrice=null, qty=null, totalPortValue=null) {
   else if(divL12m===0) alertas.push('Sem dividendos no L12M');
   if(tetoBazin>0&&price<tetoBazin) score+=3;
   else if(tetoBazin>0) alertas.push('Acima do teto Bazin');
-  else alertas.push('Sem histórico de dividendos');
+  else alertas.push('Sem histórico suficiente');
   if(dlEbitda!==null&&dlEbitda<=3.0) score+=2;
   else if(dlEbitda!==null&&dlEbitda>3.0) alertas.push(`Dívida alta (DL/EBITDA: ${dlEbitda.toFixed(1)}x)`);
   if(isBESST) score+=1;
@@ -471,100 +484,134 @@ function analyzeStock(data, avgPrice=null, qty=null, totalPortValue=null) {
       if(w>20) alertas.push(`Concentração ${w.toFixed(1)}% — rebalancear`);
     }
   }
-
   const ey=pl&&pl>0?(1/pl)*100:(lpa>0?lpa/price*100:0);
-
   return {
     symbol:data.symbol,name,price,avgPrice,qty,
-    divL12m,avg3y,divBase,dy:dy*100,yearsDiv,
+    divL12m,avg5y,avg3y,divBase,dy:dy*100,yearsDiv,
     payout:payout!==null?payout*100:null,
     tetoBazin,margem,precoGraham,precoGordon,
     dlEbitda,lpa,vpa,pl,
     roe:parseFloat(data.returnOnEquity)||0,
     score,status,bc,alertas,sig,varPerc,queda52w,ey,
-    isCiclic,isBESST,
+    besstCat,isBESST,isCiclic,
   };
 }
 
-function calcRanking(items) {
+function calcRanking(items){
   const valid=items.filter(i=>i.ey>0);
-  const rankBy=(arr,key)=>{
-    const s=[...arr].sort((a,b)=>b[key]-a[key]);
-    const r={};s.forEach((item,i)=>{r[item.symbol]=i+1;});return r;
-  };
+  const rankBy=(arr,key)=>{const s=[...arr].sort((a,b)=>b[key]-a[key]);const r={};s.forEach((i,n)=>{r[i.symbol]=n+1;});return r;};
   const rEY=rankBy(valid,'ey'),rDY=rankBy(valid,'dy');
-  items.forEach(item=>{item.rankFM=(rEY[item.symbol]||valid.length+1)+(rDY[item.symbol]||valid.length+1);});
-  const sorted=[...items].sort((a,b)=>(a.rankFM||9999)-(b.rankFM||9999));
-  sorted.forEach((item,i)=>{item.rank=i+1;});
+  items.forEach(i=>{i.rankFM=(rEY[i.symbol]||valid.length+1)+(rDY[i.symbol]||valid.length+1);});
+  [...items].sort((a,b)=>(a.rankFM||9999)-(b.rankFM||9999)).forEach((i,n)=>{i.rank=n+1;});
   return items;
 }
 
-// ── Racional DCA ───────────────────────────────
-function buildRational(item, pos) {
-  const parts = [];
+// ── Sector Distribution Chart ──────────────────
+function sectorChartHtml(items){
+  // Agrupa por BESST
+  const groups={};
+  let totalVal=0;
+  items.forEach(item=>{
+    const val=item.price&&item.qty?item.price*item.qty:item.price||0;
+    const cat=item.besstCat;
+    if(!groups[cat]) groups[cat]={cat,val:0,tickers:[]};
+    groups[cat].val+=val;
+    groups[cat].tickers.push(item.symbol);
+    totalVal+=val;
+  });
 
-  // Score
-  if (item.score >= 9) parts.push(`Score máximo (${item.score}/11) — passa em todos os critérios Bazin`);
-  else if (item.score >= 7) parts.push(`Score sólido de ${item.score}/11`);
+  // Calcula percentuais
+  const rows=Object.values(groups)
+    .map(g=>({...g,pct:totalVal>0?g.val/totalVal*100:0}))
+    .sort((a,b)=>b.pct-a.pct);
 
-  // DY
-  if (item.dy >= 8) parts.push(`DY de ${item.dy.toFixed(1)}% — renda passiva acima da média do setor`);
-  else if (item.dy >= 6) parts.push(`DY de ${item.dy.toFixed(1)}% — mínimo Bazin atendido`);
+  const IDEAL=30;
+  const rowsHtml=rows.map(r=>{
+    const b=BESST_MAP[r.cat]||BESST_MAP.X;
+    const over=r.pct>IDEAL;
+    const near=r.pct>=IDEAL*0.85&&r.pct<=IDEAL;
+    const fillColor=over?'var(--red-lt)':near?'var(--amber-lt)':'var(--green-lt)';
+    const pctColor=over?'c-red':near?'c-amber':'c-green';
+    const warn=over?`<span class="sector-warn" style="color:var(--red-lt);background:rgba(185,28,28,.1);border:1px solid rgba(185,28,28,.25)">▲ ${(r.pct-IDEAL).toFixed(0)}% acima</span>`
+               :near?`<span class="sector-warn" style="color:var(--amber-lt)">≈ limite</span>`:'';
+    return `<div class="sector-row">
+      <div class="sector-label">${besstBadge(r.cat)}</div>
+      <div><div class="sector-track"><div class="sector-fill" style="width:${Math.min(100,r.pct)}%;background:${fillColor}"></div></div>
+      <div class="sector-tickers">${r.tickers.join(', ')}</div></div>
+      <div class="sector-pct ${pctColor}">${r.pct.toFixed(1)}%</div>
+      ${warn||'<div></div>'}
+    </div>`;
+  }).join('');
 
-  // Margem de segurança
-  if (item.margem !== null) {
-    if (item.margem >= 20) parts.push(`preço ${item.margem.toFixed(0)}% abaixo do teto Bazin — excelente margem de segurança`);
-    else if (item.margem >= 10) parts.push(`preço ${item.margem.toFixed(0)}% abaixo do teto Bazin — boa margem de entrada`);
-    else if (item.margem >= 0) parts.push(`preço ligeiramente abaixo do teto Bazin (${item.margem.toFixed(0)}%)`);
-  }
+  const hasFin=totalVal>0;
+  const nota=hasFin?'Baseado no valor de mercado (preço × qtd)':'Adicione quantidades para ver distribuição por valor. Agora mostrando por número de ativos.';
 
-  // Consistência
-  if (item.yearsDiv >= 5) parts.push(`5 anos consecutivos de dividendos — histórico impecável`);
-  else if (item.yearsDiv >= 4) parts.push(`${item.yearsDiv} anos pagando dividendos — consistência comprovada`);
+  // Se não tem valor financeiro, usa contagem
+  const rowsCount=!hasFin?rows.map(r=>{
+    const b=BESST_MAP[r.cat]||BESST_MAP.X;
+    const pct=r.tickers.length/items.length*100;
+    const fillColor=pct>IDEAL?'var(--red-lt)':pct>=IDEAL*0.85?'var(--amber-lt)':'var(--green-lt)';
+    return `<div class="sector-row">
+      <div class="sector-label">${besstBadge(r.cat)}</div>
+      <div><div class="sector-track"><div class="sector-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      <div class="sector-tickers">${r.tickers.join(', ')}</div></div>
+      <div class="sector-pct">${pct.toFixed(0)}%</div><div></div>
+    </div>`;
+  }).join(''):'';
 
-  // Setor
-  if (item.isBESST) parts.push(`setor defensivo (BESST) com receita previsível`);
-
-  // Dívida
-  if (item.dlEbitda !== null && item.dlEbitda <= 1.5) parts.push(`baixa alavancagem (DL/EBITDA ${item.dlEbitda.toFixed(1)}x)`);
-  else if (item.dlEbitda !== null && item.dlEbitda <= 3) parts.push(`dívida controlada (DL/EBITDA ${item.dlEbitda.toFixed(1)}x)`);
-
-  // Ranking
-  if (pos === 0) parts.push(`melhor relação qualidade/preço da watchlist pelo ranking Greenblatt`);
-  else if (pos === 1) parts.push(`2º colocado no ranking de qualidade/preço`);
-
-  if (parts.length === 0) return 'Melhor combinação de DY e score disponível na watchlist no momento.';
-
-  return parts.join(', ') + '.';
+  return `<div class="sector-card">
+    <h3>🗂️ Distribuição por Setor BESST <small>ideal: ≤ 30% por setor · linha Barsi</small></h3>
+    <div class="sector-rows">${hasFin?rowsHtml:rowsCount}</div>
+    <div class="footnote" style="margin-top:.75rem">${nota}</div>
+  </div>`;
 }
 
-// ══════════════════════════════════════════════
-//  TABLE ROW BUILDERS
-// ══════════════════════════════════════════════
-function scoreHtml(sc) {
+// ── Racional DCA ──────────────────────────────
+function buildRational(item,pos){
+  const parts=[];
+  const b=BESST_MAP[item.besstCat];
+  if(item.score>=9) parts.push(`score máximo (${item.score}/11) — passa em todos os critérios Bazin`);
+  else if(item.score>=7) parts.push(`score sólido de ${item.score}/11`);
+  if(item.dy>=8) parts.push(`DY de ${item.dy.toFixed(1)}% — renda acima da média`);
+  else if(item.dy>=6) parts.push(`DY de ${item.dy.toFixed(1)}% — mínimo Bazin atendido`);
+  if(item.margem!==null){
+    if(item.margem>=20) parts.push(`${item.margem.toFixed(0)}% abaixo do teto Bazin (média 5 anos) — excelente margem`);
+    else if(item.margem>=10) parts.push(`${item.margem.toFixed(0)}% abaixo do teto Bazin — boa margem de entrada`);
+  }
+  if(item.yearsDiv>=5) parts.push(`5 anos consecutivos de dividendos`);
+  else if(item.yearsDiv>=4) parts.push(`${item.yearsDiv} anos pagando dividendos`);
+  if(item.isBESST&&b) parts.push(`setor ${b.label} (${b.icon} BESST Barsi) — receita previsível e regulada`);
+  if(item.dlEbitda!==null&&item.dlEbitda<=1.5) parts.push(`baixíssima alavancagem (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
+  else if(item.dlEbitda!==null&&item.dlEbitda<=3) parts.push(`dívida controlada (${item.dlEbitda.toFixed(1)}x DL/EBITDA)`);
+  if(pos===0) parts.push(`melhor posição no ranking Greenblatt da watchlist`);
+  else if(pos===1) parts.push(`2ª melhor posição no ranking`);
+  return (parts.length?parts.join(', '):'Melhor combinação de DY e score disponível')+'.';
+}
+
+// ── HTML Helpers ──────────────────────────────
+function scoreHtml(sc){
   const c=sc>=7?'#4ade80':sc>=5?'#60a5fa':sc>=3?'#fbbf24':'#f87171';
   return `<div class="score-wrap"><span class="score-num" style="color:${c}">${sc}</span><div class="score-bar"><div class="score-fill" style="width:${Math.max(0,Math.min(100,sc/11*100))}%;background:${c}"></div></div></div>`;
 }
-function tetoHtml(item) {
+function tetoHtml(item){
   if(!item.tetoBazin) return '<span class="no-data">—</span>';
   return `<span class="mono ${item.price<item.tetoBazin?'c-green':'c-red'}">R$${item.tetoBazin.toFixed(2)}</span>`;
 }
-function margemHtml(item) {
+function margemHtml(item){
   if(item.margem===null) return '<span class="no-data">—</span>';
   return `<span class="mono ${item.margem>=10?'c-green':item.margem>=0?'c-amber':'c-red'}">${item.margem>=0?'+':''}${item.margem.toFixed(1)}%</span>`;
 }
-function alertasHtml(item) {
+function alertasHtml(item){
   if(!item.alertas.length) return '<span class="no-data">—</span>';
   return `<div class="alert-list">${item.alertas.map(a=>`<div class="alert-item">• ${a}</div>`).join('')}</div>`;
 }
-function portfolioRow(item) {
-  const varH=item.varPerc!==null
-    ?`<span class="mono ${item.varPerc>=0?'c-green':'c-red'}">${item.varPerc>=0?'+':''}${item.varPerc.toFixed(2)}%</span>`
-    :'<span class="no-data">—</span>';
+function portfolioRow(item){
+  const varH=item.varPerc!==null?`<span class="mono ${item.varPerc>=0?'c-green':'c-red'}">${item.varPerc>=0?'+':''}${item.varPerc.toFixed(2)}%</span>`:'<span class="no-data">—</span>';
   const sigH=item.sig?`<span class="badge ${item.sig.bc}">${item.sig.label}</span>`:'<span class="no-data">—</span>';
   const dlH=item.dlEbitda!==null?`<span class="mono ${item.dlEbitda<=3?'c-green':'c-red'}">${item.dlEbitda.toFixed(1)}x</span>`:'<span class="no-data">—</span>';
   return `<tr>
     <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
+    <td>${besstBadge(item.besstCat)}</td>
     <td class="mono">${item.avgPrice?'R$'+item.avgPrice.toFixed(2):'—'}</td>
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
     <td>${varH}</td>
@@ -578,20 +625,21 @@ function portfolioRow(item) {
     <td>${alertasHtml(item)}</td>
   </tr>`;
 }
-function watchlistRow(item) {
+function watchlistRow(item){
   const dlH=item.dlEbitda!==null?`<span class="mono ${item.dlEbitda<=3?'c-green':'c-red'}">${item.dlEbitda.toFixed(1)}x</span>`:'<span class="no-data">—</span>';
   const payoutH=item.payout!==null?`<span class="mono ${item.payout<=85?'c-green':'c-red'}">${item.payout.toFixed(0)}%</span>`:'<span class="no-data">—</span>';
   const grahamH=item.precoGraham>0?`<span class="mono ${item.price<item.precoGraham?'c-green':'c-red'}">R$${item.precoGraham.toFixed(2)}</span>`:'<span class="no-data">—</span>';
   return `<tr>
     <td class="mono c-dim" style="text-align:center;font-size:.78rem">#${item.rank||'—'}</td>
     <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
+    <td>${besstBadge(item.besstCat)}</td>
     <td>${scoreHtml(item.score)}</td>
     <td><span class="badge ${item.bc}">${item.status}</span></td>
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
     <td>${tetoHtml(item)}</td>
     <td>${margemHtml(item)}</td>
     <td class="mono c-amber">${item.dy.toFixed(2)}%</td>
-    <td class="mono c-dim">${item.yearsDiv}/5 anos</td>
+    <td class="mono c-dim">${item.yearsDiv}/5a</td>
     <td>${payoutH}</td>
     <td>${dlH}</td>
     <td class="mono c-dim">${item.pl?item.pl.toFixed(1)+'x':'—'}</td>
@@ -603,13 +651,13 @@ function watchlistRow(item) {
 // ══════════════════════════════════════════════
 //  ANALYZE PORTFOLIO
 // ══════════════════════════════════════════════
-async function analyzePortfolio() {
+async function analyzePortfolio(){
   if(!S.portfolio.length) return toast('Adicione ativos à carteira primeiro','error');
   const btn=document.getElementById('btnP');
-  btn.disabled=true;btn.textContent='⏳ Buscando dados...';
+  btn.disabled=true; btn.textContent='⏳ Buscando dados...';
   document.getElementById('portfolioResults').innerHTML=
     `<div class="loading"><div class="spinner"></div><p>Consultando Yahoo Finance para ${S.portfolio.length} ativo(s)...</p></div>`;
-  try {
+  try{
     const raw=await fetchStocks(S.portfolio.map(p=>p.ticker));
     let totalValue=0;
     S.portfolio.forEach(p=>{const d=raw[p.ticker];if(d&&p.qty)totalValue+=parseFloat(d.regularMarketPrice||0)*p.qty;});
@@ -622,24 +670,22 @@ async function analyzePortfolio() {
     });
     reRenderPortfolio();
     if(_pData.length) toast(`${_pData.length} ativo(s) analisado(s)`,'success');
-  } catch(e){
+  }catch(e){
     console.error(e);
     document.getElementById('portfolioResults').innerHTML=`<div class="empty"><span class="icon">⚠️</span>Erro ao buscar dados.</div>`;
   }
-  btn.disabled=false;btn.textContent='⚡ Analisar Carteira';
+  btn.disabled=false; btn.textContent='⚡ Analisar Carteira';
 }
 
-function reRenderPortfolio() {
+function reRenderPortfolio(){
   const el=document.getElementById('portfolioResults');
   if(!_pData.length){el.innerHTML=`<div class="empty"><span class="icon">📭</span>Nenhum dado retornado.</div>`;return;}
-
   const visible=applyFilterSort(_pData,'portfolio');
   const totalInv=_pData.reduce((s,i)=>s+(i.avgPrice&&i.qty?i.avgPrice*i.qty:0),0);
   const totalCur=_pData.reduce((s,i)=>s+(i.price&&i.qty?i.price*i.qty:0),0);
   const ret=totalInv>0?(totalCur-totalInv)/totalInv*100:null;
   const dyMed=_pData.reduce((s,i)=>s+i.dy,0)/_pData.length;
   const sellQty=_pData.filter(i=>i.sig&&i.sig.lv>0).length;
-
   const summaryHtml=totalInv>0?`<div class="summary-grid">
     <div class="summary-card"><div class="s-label">Capital Alocado</div><div class="s-value">R$${fmt(totalInv)}</div></div>
     <div class="summary-card ${ret>=0?'hl-gold':''}">
@@ -650,31 +696,29 @@ function reRenderPortfolio() {
     <div class="summary-card"><div class="s-label">DY Médio</div><div class="s-value c-amber">${dyMed.toFixed(2)}%</div><div class="s-sub">L12M / preço atual</div></div>
     ${sellQty?`<div class="summary-card" style="border-color:var(--amber-lt)"><div class="s-label">Sinais de Venda</div><div class="s-value c-amber">${sellQty}</div></div>`:''}
   </div>`:'';
-
   el.innerHTML=`${summaryHtml}
+    ${sectorChartHtml(_pData)}
     <div class="section-header"><h2>Análise da Carteira</h2><span>${_pData.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span></div>
     ${filterBarHtml('portfolio',_pData.length,visible.length)}
     <div class="table-wrap"><table>
-      <thead><tr>
-        <th>Ativo</th><th>Preço Médio</th><th>Preço Atual</th><th>Variação</th>
+      <thead><tr><th>Ativo</th><th>Setor</th><th>Preço Médio</th><th>Preço Atual</th><th>Variação</th>
         <th>Score /11</th><th>Status</th><th>DY %</th><th>Teto Bazin</th>
-        <th>Margem</th><th>DL/EBITDA</th><th>Sinal de Venda</th><th>Alertas</th>
-      </tr></thead>
-      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+        <th>Margem</th><th>DL/EBITDA</th><th>Sinal Venda</th><th>Alertas</th></tr></thead>
+      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
-    <div class="footnote">Sinal de Venda: +30%→vender 25% · +50%→50% acumulado · +80%→75% acumulado. Score máx. 11 pts. Dados: Yahoo Finance.</div>`;
+    <div class="footnote">Teto Bazin calculado sobre média de 5 anos de dividendos (mais estável). Sinal de Venda: +30%→25% · +50%→50% acum. · +80%→75%. Score máx. 11 pts.</div>`;
 }
 
 // ══════════════════════════════════════════════
 //  ANALYZE WATCHLIST
 // ══════════════════════════════════════════════
-async function analyzeWatchlist() {
+async function analyzeWatchlist(){
   if(!S.watchlist.length) return toast('Adicione ativos à watchlist primeiro','error');
   const btn=document.getElementById('btnW');
-  btn.disabled=true;btn.textContent='⏳ Buscando dados...';
+  btn.disabled=true; btn.textContent='⏳ Buscando dados...';
   document.getElementById('watchlistResults').innerHTML=
     `<div class="loading"><div class="spinner"></div><p>Consultando Yahoo Finance para ${S.watchlist.length} ativo(s)...</p></div>`;
-  try {
+  try{
     const raw=await fetchStocks(S.watchlist.map(w=>w.ticker));
     _wData=[];
     S.watchlist.forEach(w=>{
@@ -686,20 +730,17 @@ async function analyzeWatchlist() {
     calcRanking(_wData);
     reRenderWatchlist();
     if(_wData.length) toast(`${_wData.length} ativo(s) analisado(s)`,'success');
-  } catch(e){
+  }catch(e){
     console.error(e);
     document.getElementById('watchlistResults').innerHTML=`<div class="empty"><span class="icon">⚠️</span>Erro ao buscar dados.</div>`;
   }
-  btn.disabled=false;btn.textContent='⚡ Analisar Watchlist';
+  btn.disabled=false; btn.textContent='⚡ Analisar Watchlist';
 }
 
-function reRenderWatchlist() {
+function reRenderWatchlist(){
   const el=document.getElementById('watchlistResults');
   if(!_wData.length){el.innerHTML=`<div class="empty"><span class="icon">📭</span>Nenhum dado retornado.</div>`;return;}
-
   const visible=applyFilterSort(_wData,'watchlist');
-
-  // DCA top 3 — sempre dos dados completos (ignora filtro)
   const buys=[..._wData].filter(i=>i.status.includes('COMPRA')).sort((a,b)=>(a.rank||999)-(b.rank||999)).slice(0,3);
   const amounts=[600,500,400];
   const dcaHtml=buys.length?`<div class="dca-card">
@@ -709,46 +750,36 @@ function reRenderWatchlist() {
         <div class="dca-item-top">
           <span class="dca-pos">${i+1}º</span>
           <span class="dca-ticker">${item.symbol}</span>
-          <span class="dca-metrics">
-            Score ${item.score}/11 &nbsp;·&nbsp; DY ${item.dy.toFixed(1)}%
-            ${item.margem!==null?` &nbsp;·&nbsp; Margem ${item.margem>=0?'+':''}${item.margem.toFixed(1)}%`:''}
-            &nbsp;·&nbsp; Teto R$${item.tetoBazin>0?item.tetoBazin.toFixed(2):'—'}
-          </span>
+          ${besstBadge(item.besstCat)}
+          <span class="dca-metrics">Score ${item.score}/11 · DY ${item.dy.toFixed(1)}%${item.margem!==null?` · Margem ${item.margem>=0?'+':''}${item.margem.toFixed(1)}%`:''} · Teto R$${item.tetoBazin>0?item.tetoBazin.toFixed(2):'—'}</span>
           <span class="dca-amount">R$${(amounts[i]||400).toLocaleString('pt-BR')}</span>
         </div>
-        <div class="dca-rational">📌 ${buildRational(item, i)}</div>
+        <div class="dca-rational">📌 ${buildRational(item,i)}</div>
       </div>`).join('')}
     </div>
   </div>`:'';
-
   const cf=_wData.filter(i=>i.status.includes('FORTE')).length;
-  const c =_wData.filter(i=>i.status==='COMPRA').length;
-  const a =_wData.filter(i=>i.status==='AGUARDAR').length;
-
+  const c=_wData.filter(i=>i.status==='COMPRA').length;
+  const a=_wData.filter(i=>i.status==='AGUARDAR').length;
+  const besst=_wData.filter(i=>i.besstCat!=='X').length;
   const summaryHtml=`<div class="summary-grid">
     <div class="summary-card hl-gold"><div class="s-label">★ Compra Forte</div><div class="s-value">${cf}</div></div>
     <div class="summary-card"><div class="s-label">✓ Compra</div><div class="s-value c-blue">${c}</div></div>
     <div class="summary-card"><div class="s-label">⏳ Aguardar</div><div class="s-value c-amber">${a}</div></div>
-    <div class="summary-card"><div class="s-label">DY Médio</div><div class="s-value c-amber">${(_wData.reduce((s,i)=>s+i.dy,0)/_wData.length).toFixed(2)}%</div></div>
+    <div class="summary-card"><div class="s-label">🏆 Setores BESST</div><div class="s-value c-green">${besst}</div><div class="s-sub">de ${_wData.length} ativos</div></div>
   </div>`;
-
   el.innerHTML=`${summaryHtml}${dcaHtml}
-    <div class="section-header"><h2>Análise Watchlist — Estratégia Bazin</h2><span>${_wData.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span></div>
+    <div class="section-header"><h2>Análise Watchlist — Bazin + BESST Barsi</h2><span>${_wData.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span></div>
     ${filterBarHtml('watchlist',_wData.length,visible.length)}
     <div class="table-wrap"><table>
-      <thead><tr>
-        <th>#</th><th>Ativo</th><th>Score /11</th><th>Status</th>
+      <thead><tr><th>#</th><th>Ativo</th><th>Setor</th><th>Score /11</th><th>Status</th>
         <th>Preço</th><th>Teto Bazin</th><th>Margem</th><th>DY %</th>
-        <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Alertas</th>
-      </tr></thead>
-      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="14" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+        <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Alertas</th></tr></thead>
+      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
-    <div class="footnote">Ranking = Earnings Yield + DY (proxy Magic Formula). Score máx. 11 pts. Dados: Yahoo Finance. Não constitui recomendação de investimento.</div>`;
+    <div class="footnote">Teto Bazin = média 5 anos ÷ 0,06. Ranking = Earnings Yield + DY (Greenblatt). BESST: Bancos · Energia · Saneamento · Seguros · Telecom (linha Barsi). Não constitui recomendação.</div>`;
 }
 
-// ══════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════
 function fmt(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 init();
 </script>

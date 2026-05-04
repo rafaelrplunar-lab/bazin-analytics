@@ -410,11 +410,11 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
     const vals=Object.values(byYr).filter(v=>v>0);
     return vals.length>0?vals.reduce((a,b)=>a+b,0)/vals.length:0;
   }
-  const avg5y=avgByYear(d5y);
+
   const avg3y=avgByYear(d3y);
 
-  // Prioridade: 5a → 3a → L12M (mais estável)
-  const divBase=avg5y>0?avg5y:avg3y>0?avg3y:divL12m;
+  // Dividendo base ponderado: estabilidade da média 3a + recência do L12M
+  const divBase=avg3y>0&&divL12m>0?avg3y*0.6+divL12m*0.4:(avg3y||divL12m);
 
   const dy=price>0?divL12m/price:0;
 
@@ -487,7 +487,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const ey=pl&&pl>0?(1/pl)*100:(lpa>0?lpa/price*100:0);
   return {
     symbol:data.symbol,name,price,avgPrice,qty,
-    divL12m,avg5y,avg3y,divBase,dy:dy*100,yearsDiv,
+    divL12m,avg3y,divBase,dy:dy*100,yearsDiv,
     payout:payout!==null?payout*100:null,
     tetoBazin,margem,precoGraham,precoGordon,
     dlEbitda,lpa,vpa,pl,

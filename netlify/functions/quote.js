@@ -196,6 +196,10 @@ exports.handler = async (event) => {
         ebitda:             raw(fd.ebitda)            ?? 0,
         returnOnEquity:     raw(fd.returnOnEquity)    ?? 0,
         dividendsHistory:   chart.divs,
+        // Data com (ex-dividend date)
+        exDividendDate:     raw(sd.exDividendDate)    ?? null,
+        lastDividendDate:   raw(ks.lastDividendDate)  ?? null,
+        lastDividendValue:  raw(ks.lastDividendValue) ?? null,
       };
     } catch(err) {
       console.error(`Error ${sym}:`, err.message);

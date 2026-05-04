@@ -132,6 +132,10 @@ tr:hover td{background:var(--surface2)}
 .alert-list{display:flex;flex-direction:column;gap:.22rem;max-width:220px}
 .alert-item{font-size:.68rem;color:var(--amber-lt);white-space:normal;line-height:1.35}
 .no-data{font-size:.72rem;color:var(--text-dim)}
+.dc-upcoming{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;font-weight:600;background:rgba(22,163,74,.18);color:#4ade80;border:1px solid rgba(22,163,74,.4);white-space:nowrap}
+.dc-soon{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;font-weight:600;background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.35);white-space:nowrap}
+.dc-recent{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;color:#94a3b8;border:1px solid var(--border2);white-space:nowrap}
+.dc-old{font-size:.72rem;color:var(--text-dim);white-space:nowrap}
 .mono{font-family:var(--mono)}
 .c-green{color:var(--green-lt)}.c-red{color:var(--red-lt)}.c-amber{color:var(--amber-lt)}.c-gold{color:var(--gold-lt)}.c-dim{color:var(--text-dim)}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
@@ -485,6 +489,35 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
     }
   }
   const ey=pl&&pl>0?(1/pl)*100:(lpa>0?lpa/price*100:0);
+
+  // ── Data Com ────────────────────────────────────────────
+  // exDividendDate do Yahoo vem como Unix timestamp (segundos)
+  function parseDateField(v) {
+    if (!v) return null;
+    // Unix timestamp
+    if (typeof v === 'number' && v > 1e9) return new Date(v * 1000);
+    // String ISO
+    if (typeof v === 'string' && v.length >= 8) return new Date(v);
+    return null;
+  }
+  const exDate      = parseDateField(data.exDividendDate);
+  const lastDivDate = parseDateField(data.lastDividendDate);
+  // Usa a mais recente entre as duas como referência
+  const dataComRef  = exDate || lastDivDate;
+  const hoje        = new Date(); hoje.setHours(0,0,0,0);
+  let dataComStatus = null; // 'upcoming' | 'recent' | 'old' | null
+  let dataComDias   = null;
+  let dataComStr    = null;
+  if (dataComRef) {
+    const ref = new Date(dataComRef); ref.setHours(0,0,0,0);
+    dataComDias = Math.round((ref - hoje) / 86400000);
+    dataComStr  = ref.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+    if (dataComDias >= 0 && dataComDias <= 15)       dataComStatus = 'upcoming';  // próxima
+    else if (dataComDias > 15 && dataComDias <= 45)  dataComStatus = 'soon';      // chegando
+    else if (dataComDias < 0 && dataComDias >= -10)  dataComStatus = 'recent';    // passou recentemente
+    else                                              dataComStatus = 'old';
+  }
+
   return {
     symbol:data.symbol,name,price,avgPrice,qty,
     divL12m,avg3y,divBase,dy:dy*100,yearsDiv,
@@ -494,6 +527,8 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
     roe:parseFloat(data.returnOnEquity)||0,
     score,status,bc,alertas,sig,varPerc,queda52w,ey,
     besstCat,isBESST,isCiclic,
+    dataComStr,dataComDias,dataComStatus,
+    lastDividendValue: data.lastDividendValue ?? null,
   };
 }
 
@@ -605,6 +640,23 @@ function alertasHtml(item){
   if(!item.alertas.length) return '<span class="no-data">—</span>';
   return `<div class="alert-list">${item.alertas.map(a=>`<div class="alert-item">• ${a}</div>`).join('')}</div>`;
 }
+function dataComHtml(item) {
+  if (!item.dataComStr) return '<span class="no-data">—</span>';
+  const d = item.dataComDias;
+  const lastDiv = item.lastDividendValue ? ` · R$${parseFloat(item.lastDividendValue).toFixed(4)}` : '';
+  if (item.dataComStatus === 'upcoming') {
+    const label = d === 0 ? 'HOJE' : d === 1 ? 'Amanhã' : `em ${d} dias`;
+    return `<div class="dc-upcoming">🟢 ${label} — ${item.dataComStr}${lastDiv}</div>`;
+  }
+  if (item.dataComStatus === 'soon') {
+    return `<div class="dc-soon">⏳ ${item.dataComStr} (em ${d}d)${lastDiv}</div>`;
+  }
+  if (item.dataComStatus === 'recent') {
+    return `<div class="dc-recent">✓ Passou há ${Math.abs(d)}d — ${item.dataComStr}</div>`;
+  }
+  return `<div class="dc-old">${item.dataComStr}</div>`;
+}
+
 function portfolioRow(item){
   const varH=item.varPerc!==null?`<span class="mono ${item.varPerc>=0?'c-green':'c-red'}">${item.varPerc>=0?'+':''}${item.varPerc.toFixed(2)}%</span>`:'<span class="no-data">—</span>';
   const sigH=item.sig?`<span class="badge ${item.sig.bc}">${item.sig.label}</span>`:'<span class="no-data">—</span>';
@@ -622,6 +674,7 @@ function portfolioRow(item){
     <td>${margemHtml(item)}</td>
     <td>${dlH}</td>
     <td>${sigH}</td>
+    <td>${dataComHtml(item)}</td>
     <td>${alertasHtml(item)}</td>
   </tr>`;
 }
@@ -644,6 +697,7 @@ function watchlistRow(item){
     <td>${dlH}</td>
     <td class="mono c-dim">${item.pl?item.pl.toFixed(1)+'x':'—'}</td>
     <td>${grahamH}</td>
+    <td>${dataComHtml(item)}</td>
     <td>${alertasHtml(item)}</td>
   </tr>`;
 }
@@ -703,8 +757,8 @@ function reRenderPortfolio(){
     <div class="table-wrap"><table>
       <thead><tr><th>Ativo</th><th>Setor</th><th>Preço Médio</th><th>Preço Atual</th><th>Variação</th>
         <th>Score /11</th><th>Status</th><th>DY %</th><th>Teto Bazin</th>
-        <th>Margem</th><th>DL/EBITDA</th><th>Sinal Venda</th><th>Alertas</th></tr></thead>
-      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="13" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+        <th>Margem</th><th>DL/EBITDA</th><th>Sinal Venda</th><th>Data Com</th><th>Alertas</th></tr></thead>
+      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="14" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
     <div class="footnote">Teto Bazin calculado sobre média de 5 anos de dividendos (mais estável). Sinal de Venda: +30%→25% · +50%→50% acum. · +80%→75%. Score máx. 11 pts.</div>`;
 }
@@ -774,8 +828,8 @@ function reRenderWatchlist(){
     <div class="table-wrap"><table>
       <thead><tr><th>#</th><th>Ativo</th><th>Setor</th><th>Score /11</th><th>Status</th>
         <th>Preço</th><th>Teto Bazin</th><th>Margem</th><th>DY %</th>
-        <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Alertas</th></tr></thead>
-      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+        <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Data Com</th><th>Alertas</th></tr></thead>
+      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="16" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
     <div class="footnote">Teto Bazin = média 5 anos ÷ 0,06. Ranking = Earnings Yield + DY (Greenblatt). BESST: Bancos · Energia · Saneamento · Seguros · Telecom (linha Barsi). Não constitui recomendação.</div>`;
 }

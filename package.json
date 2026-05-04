@@ -1,0 +1,6 @@
+{
+  "name": "bazin-analytics",
+  "version": "2.0.0",
+  "description": "Bazin Analytics - Carteira de Dividendos",
+  "engines": { "node": ">=18" }
+}

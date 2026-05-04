@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bazin Analytics — Carteira de Dividendos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07090f;
+  --surface:  #0c1119;
+  --surface2: #101621;
+  --surface3: #151d2e;
+  --border:   #1e2840;
+  --border2:  #263548;
+  --gold:     #c9870c;
+  --gold-lt:  #e8a930;
+  --green:    #16a34a;
+  --green-lt: #22c55e;
+  --red:      #b91c1c;
+  --red-lt:   #ef4444;
+  --amber-lt: #f59e0b;
+  --blue-lt:  #60a5fa;
+  --text:     #c8d5e8;
+  --text-dim: #7a8fa8;
+  --text-br:  #ddeaf8;
+  --mono:     'JetBrains Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:1440px;margin:0 auto;padding:0 1.5rem}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.1rem 0;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.logo h1{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:600;color:var(--gold-lt);letter-spacing:2px}
+.logo span{font-size:.68rem;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-left:.6rem}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.tab-nav{display:flex}
+.tab-btn{background:none;border:none;color:var(--text-dim);padding:.85rem 1.5rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;border-bottom:2px solid transparent;transition:all .2s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--gold-lt);border-color:var(--gold-lt)}
+
+/* TAB CONTENT */
+.tab-content{display:none;padding:2rem 0}
+.tab-content.active{display:block}
+
+/* INPUT CARD */
+.input-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.input-card h3{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold-lt);margin-bottom:1.25rem;letter-spacing:1px}
+.input-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end}
+.input-group{display:flex;flex-direction:column;gap:.35rem}
+.input-group label{font-size:.7rem;color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase}
+.input-group input{background:var(--surface3);border:1px solid var(--border2);color:var(--text-br);padding:.5rem .9rem;border-radius:8px;font-size:.88rem;font-family:'DM Sans',sans-serif;transition:border-color .2s;width:160px}
+.input-group input.w-xl{width:340px}
+.input-group input:focus{outline:none;border-color:var(--gold)}
+.btn{padding:.55rem 1.25rem;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;transition:all .2s}
+.btn-add{background:var(--surface3);color:var(--gold-lt);border:1px solid var(--gold)}
+.btn-add:hover{background:var(--gold);color:#000}
+.btn-analyze{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-lt) 100%);color:#000;font-weight:600;padding:.6rem 1.75rem;letter-spacing:.5px}
+.btn-analyze:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,130,12,.35)}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 1.25rem;min-height:1px}
+.chip{background:var(--surface3);border:1px solid var(--border2);border-radius:20px;padding:.28rem .85rem;font-size:.77rem;display:flex;align-items:center;gap:.5rem;font-family:var(--mono)}
+.chip span{color:var(--gold-lt);font-weight:600}
+.chip em{color:var(--text-dim);font-style:normal;font-size:.72rem}
+.chip button{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.95rem;padding:0;line-height:1}
+.chip button:hover{color:var(--red-lt)}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1rem;margin-bottom:1.5rem}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem}
+.s-label{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem}
+.s-value{font-family:var(--mono);font-size:1.3rem;font-weight:600;color:var(--text-br)}
+.s-sub{font-size:.72rem;color:var(--text-dim);margin-top:.2rem}
+.hl-gold{border-color:var(--gold)}
+.hl-gold .s-value{color:var(--gold-lt)}
+
+/* DCA CARD */
+.dca-card{background:linear-gradient(135deg,rgba(200,130,12,.07),rgba(200,130,12,.02));border:1px solid rgba(200,130,12,.28);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.dca-card h3{font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem}
+.dca-items{display:flex;flex-direction:column;gap:.55rem}
+.dca-item{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 1rem;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.dca-pos{font-size:.7rem;color:var(--text-dim);min-width:1.5rem}
+.dca-ticker{font-family:var(--mono);font-weight:600;color:var(--gold-lt);min-width:65px}
+.dca-metrics{font-size:.77rem;color:var(--text-dim);flex:1;display:flex;gap:1rem;flex-wrap:wrap}
+.dca-amount{font-family:var(--mono);font-weight:600;color:var(--green-lt);font-size:.9rem;white-space:nowrap}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border)}
+th{padding:.7rem 1rem;text-align:left;font-size:.66rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* TICKER CELL */
+.ticker-cell{display:flex;align-items:center;gap:.6rem}
+.t-logo-fb{width:26px;height:26px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--gold-lt);flex-shrink:0}
+.t-name{font-family:var(--mono);font-weight:600;font-size:.84rem;color:var(--text-br)}
+.t-sub{font-size:.68rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:.22rem .65rem;border-radius:20px;font-size:.68rem;font-weight:600;letter-spacing:.3px;white-space:nowrap}
+.b-cf{background:rgba(22,163,74,.15);color:#4ade80;border:1px solid rgba(22,163,74,.3)}
+.b-c {background:rgba(29,78,216,.12);color:#60a5fa;border:1px solid rgba(29,78,216,.3)}
+.b-a {background:rgba(180,83,9,.12); color:#fbbf24;border:1px solid rgba(180,83,9,.3)}
+.b-r {background:rgba(185,28,28,.12);color:#f87171;border:1px solid rgba(185,28,28,.3)}
+.b-s3{background:rgba(185,28,28,.15);color:#f87171;border:1px solid rgba(185,28,28,.35)}
+.b-s2{background:rgba(234,88,12,.12);color:#fb923c;border:1px solid rgba(234,88,12,.3)}
+.b-s1{background:rgba(202,138,4,.12);color:#fbbf24;border:1px solid rgba(202,138,4,.3)}
+.b-h {background:rgba(22,163,74,.08); color:#4ade80;border:1px solid rgba(22,163,74,.2)}
+
+/* SCORE BAR */
+.score-wrap{display:flex;align-items:center;gap:.5rem}
+.score-num{font-family:var(--mono);font-weight:600;font-size:.88rem;min-width:18px}
+.score-bar{height:4px;border-radius:2px;background:var(--border2);min-width:48px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+
+/* ALERTS */
+.alert-list{display:flex;flex-direction:column;gap:.22rem;max-width:230px}
+.alert-item{font-size:.68rem;color:var(--amber-lt);white-space:normal;line-height:1.35}
+.no-data{font-size:.72rem;color:var(--text-dim)}
+
+/* UTILS */
+.mono{font-family:var(--mono)}
+.c-green{color:var(--green-lt)}
+.c-red{color:var(--red-lt)}
+.c-amber{color:var(--amber-lt)}
+.c-gold{color:var(--gold-lt)}
+.c-dim{color:var(--text-dim)}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.section-header h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text-br)}
+.section-header span{font-size:.72rem;color:var(--text-dim)}
+.footnote{margin-top:.75rem;font-size:.68rem;color:var(--text-dim);line-height:1.6}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem}
+.spinner{width:34px;height:34px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:.82rem;color:var(--text-dim);font-family:var(--mono)}
+.empty{text-align:center;padding:3.5rem 1rem;color:var(--text-dim);font-size:.88rem}
+.empty .icon{font-size:2.5rem;display:block;margin-bottom:.75rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:.75rem 1.25rem;font-size:.8rem;color:var(--text);z-index:9999;transform:translateY(120px);opacity:0;transition:all .3s ease;max-width:360px;line-height:1.5}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{border-color:var(--red)}
+.toast.success{border-color:var(--green)}
+
+@media(max-width:768px){
+  .input-row{flex-direction:column}
+  .input-group input{width:100% !important}
+  .dca-metrics{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">
+        <h1>BAZIN ANALYTICS<span>Carteira de Dividendos</span></h1>
+      </div>
+      <span style="font-size:.72rem;color:var(--text-dim)">Yahoo Finance · Estratégia Décio Bazin</span>
+    </div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="container">
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('portfolio',this)">📊 Minha Carteira</button>
+      <button class="tab-btn" onclick="switchTab('watchlist',this)">🔭 Watchlist</button>
+    </nav>
+  </div>
+</div>
+
+<!-- PORTFOLIO TAB -->
+<div id="tab-portfolio" class="tab-content active">
+  <div class="container">
+    <div class="input-card">
+      <h3>✦ Adicionar Ativo à Carteira</h3>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Ticker</label>
+          <input type="text" id="pTicker" placeholder="BBAS3" maxlength="10"
+            onkeydown="if(event.key==='Enter')addPortfolio()">
+        </div>
+        <div class="input-group">
+          <label>Preço Médio (R$)</label>
+          <input type="number" id="pPrice" placeholder="28.50" step="0.01" min="0"
+            onkeydown="if(event.key==='Enter')addPortfolio()">
+        </div>
+        <div class="input-group">
+          <label>Qtd. Ações (opcional)</label>
+          <input type="number" id="pQty" placeholder="100" step="1" min="0"
+            onkeydown="if(event.key==='Enter')addPortfolio()">
+        </div>
+        <button class="btn btn-add" onclick="addPortfolio()">+ Adicionar</button>
+      </div>
+      <div class="chips" id="portfolioChips"></div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-analyze" id="btnP" onclick="analyzePortfolio()">⚡ Analisar Carteira</button>
+        <span id="hintP" style="font-size:.73rem;color:var(--text-dim)"></span>
+      </div>
+    </div>
+    <div id="portfolioResults"></div>
+  </div>
+</div>
+
+<!-- WATCHLIST TAB -->
+<div id="tab-watchlist" class="tab-content">
+  <div class="container">
+    <div class="input-card">
+      <h3>✦ Watchlist — Análise Bazin + Ranking</h3>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Ticker(s) — separe por vírgula</label>
+          <input type="text" id="wTicker" placeholder="TAEE11, CMIG4, EGIE3, BBSE3" class="w-xl"
+            onkeydown="if(event.key==='Enter')addWatchlist()">
+        </div>
+        <button class="btn btn-add" onclick="addWatchlist()">+ Adicionar</button>
+      </div>
+      <div class="chips" id="watchlistChips"></div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-analyze" id="btnW" onclick="analyzeWatchlist()">⚡ Analisar Watchlist</button>
+        <span id="hintW" style="font-size:.73rem;color:var(--text-dim)"></span>
+      </div>
+    </div>
+    <div id="watchlistResults"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE & PERSIST
+// ══════════════════════════════════════════════
+const S = { portfolio: [], watchlist: [] };
+
+function init() {
+  try {
+    const saved   = JSON.parse(localStorage.getItem('bazin_v3') || '{}');
+    S.portfolio   = saved.portfolio || [];
+    S.watchlist   = saved.watchlist || [];
+  } catch(e) {}
+  renderChips();
+  updateHints();
+}
+function save() { localStorage.setItem('bazin_v3', JSON.stringify(S)); }
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+let _toastTimer;
+function toast(msg, type = 'info', duration = 3500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.className = 'toast', duration);
+}
+
+function updateHints() {
+  const ph = document.getElementById('hintP');
+  const wh = document.getElementById('hintW');
+  if (ph) ph.textContent = S.portfolio.length ? `${S.portfolio.length} ativo(s) na carteira` : '';
+  if (wh) wh.textContent = S.watchlist.length  ? `${S.watchlist.length} ativo(s) na watchlist` : '';
+}
+
+function renderChips() {
+  document.getElementById('portfolioChips').innerHTML =
+    S.portfolio.map(item => `
+      <div class="chip">
+        <span>${item.ticker}</span>
+        <em>PM R$${parseFloat(item.avgPrice).toFixed(2)}${item.qty ? ' · ' + item.qty + ' un' : ''}</em>
+        <button onclick="removeP('${item.id}')" title="Remover">×</button>
+      </div>`).join('');
+
+  document.getElementById('watchlistChips').innerHTML =
+    S.watchlist.map(item => `
+      <div class="chip">
+        <span>${item.ticker}</span>
+        <button onclick="removeW('${item.id}')" title="Remover">×</button>
+      </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  ADD / REMOVE
+// ══════════════════════════════════════════════
+function addPortfolio() {
+  const ticker = document.getElementById('pTicker').value.trim().toUpperCase().replace('.SA','');
+  const price  = parseFloat(document.getElementById('pPrice').value);
+  const qty    = parseInt(document.getElementById('pQty').value) || null;
+  if (!ticker)           return toast('Informe o ticker', 'error');
+  if (!price || price <= 0) return toast('Informe o preço médio', 'error');
+  if (S.portfolio.find(p => p.ticker === ticker)) return toast(`${ticker} já está na carteira`, 'error');
+  S.portfolio.push({ id: crypto.randomUUID(), ticker, avgPrice: price, qty });
+  save(); renderChips(); updateHints();
+  ['pTicker','pPrice','pQty'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pTicker').focus();
+}
+
+function removeP(id) { S.portfolio = S.portfolio.filter(p => p.id !== id); save(); renderChips(); updateHints(); }
+
+function addWatchlist() {
+  const raw = document.getElementById('wTicker').value.trim().toUpperCase();
+  if (!raw) return toast('Informe o ticker', 'error');
+  const tickers = raw.split(/[,\s;]+/).map(t => t.replace('.SA','').trim()).filter(Boolean);
+  let added = 0;
+  tickers.forEach(ticker => {
+    if (!S.watchlist.find(w => w.ticker === ticker)) {
+      S.watchlist.push({ id: crypto.randomUUID(), ticker }); added++;
+    }
+  });
+  if (!added) return toast('Ticker(s) já estão na watchlist', 'error');
+  save(); renderChips(); updateHints();
+  document.getElementById('wTicker').value = '';
+}
+
+function removeW(id) { S.watchlist = S.watchlist.filter(w => w.id !== id); save(); renderChips(); updateHints(); }
+
+// ══════════════════════════════════════════════
+//  API FETCH — Netlify Function → Yahoo Finance
+// ══════════════════════════════════════════════
+async function fetchStocks(tickers) {
+  const BATCH   = 8;
+  const results = {};
+
+  for (let i = 0; i < tickers.length; i += BATCH) {
+    const batch  = tickers.slice(i, i + BATCH).join(',');
+    const url    = `/.netlify/functions/quote?ticker=${encodeURIComponent(batch)}`;
+    try {
+      const res  = await fetch(url);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast(`Erro ${res.status}: ${err.error || 'Falha na API'}`, 'error');
+        continue;
+      }
+      const json = await res.json();
+      if (json.results) Object.assign(results, json.results);
+    } catch(e) {
+      console.error('Fetch error:', e);
+      toast('Erro de conexão com a API', 'error');
+    }
+  }
+  return results;
+}
+
+// ══════════════════════════════════════════════
+//  ANALYSIS ENGINE — Estratégia Bazin
+// ══════════════════════════════════════════════
+function analyzeStock(data, avgPrice = null, qty = null, totalPortValue = null) {
+  const price = parseFloat(data.regularMarketPrice) || 0;
+  if (price <= 0) return null;
+
+  const lpa   = parseFloat(data.earningsPerShare)  || 0;
+  const pl    = data.priceEarnings != null ? parseFloat(data.priceEarnings) : null;
+  const vpa   = parseFloat(data.bookValue)         || 0;
+  const h52w  = parseFloat(data.fiftyTwoWeekHigh)  || 0;
+  const name  = data.shortName || data.longName    || data.symbol || '';
+  const sector    = (data.sector   || '').toLowerCase();
+  const industry  = (data.industry || '').toLowerCase();
+  const sectorAll = sector + ' ' + industry;
+
+  // ── Dividends ───────────────────────────────────────────────────
+  const divs  = data.dividendsHistory || [];
+  const now   = Date.now();
+  const MS1Y  = 365   * 86400000;
+  const MS3Y  = 3     * MS1Y;
+  const MS5Y  = 5     * MS1Y;
+
+  const d12m = divs.filter(d => (now - new Date(d.date)) <= MS1Y);
+  const d3y  = divs.filter(d => (now - new Date(d.date)) <= MS3Y);
+  const d5y  = divs.filter(d => (now - new Date(d.date)) <= MS5Y);
+
+  const sumDiv = arr => arr.reduce((s, d) => s + (parseFloat(d.amount) || 0), 0);
+
+  const divL12m = sumDiv(d12m);
+
+  // Média 3 anos por ano fiscal
+  const byYear3 = {};
+  d3y.forEach(d => {
+    const yr = new Date(d.date).getFullYear();
+    byYear3[yr] = (byYear3[yr] || 0) + (parseFloat(d.amount) || 0);
+  });
+  const years3   = Object.values(byYear3);
+  const avg3y    = years3.length > 0 ? years3.reduce((a,b)=>a+b,0) / years3.length : 0;
+
+  // [MELHORIA 1] Dividendo base ponderado
+  const divBase = avg3y > 0 && divL12m > 0
+    ? avg3y * 0.6 + divL12m * 0.4
+    : (avg3y || divL12m);
+
+  const dy = price > 0 ? divL12m / price : 0;
+
+  // Consistência — anos pagando nos últimos 5 anos [MELHORIA 5]
+  const byYear5 = {};
+  d5y.forEach(d => {
+    const yr = new Date(d.date).getFullYear();
+    byYear5[yr] = (byYear5[yr] || 0) + (parseFloat(d.amount) || 0);
+  });
+  const yearsDiv = Object.values(byYear5).filter(v => v > 0).length;
+
+  // Payout [MELHORIA 4]
+  const payout = lpa > 0 ? divL12m / lpa : null;
+
+  // ── Valuation ──────────────────────────────────────────────────
+  const tetoBazin   = divBase > 0 ? divBase / 0.06 : 0;
+  const margem      = tetoBazin > 0 ? ((tetoBazin - price) / price) * 100 : null;
+  const precoGraham = lpa > 0 && vpa > 0 ? Math.sqrt(22.5 * lpa * vpa) : 0;
+  const precoGordon = divBase > 0 ? (divBase * 1.02) / (0.10 - 0.02) : 0;
+
+  // ── Sector flags ───────────────────────────────────────────────
+  const isBESST  = /bank|financ|insur|utilit|electric|water|sanit|telecom/.test(sectorAll);
+  const isCiclic = /oil|gas|mining|metal|steel|agric|celulo|paper|coal|petroleo|miner|siderur/.test(sectorAll);
+
+  const queda52w = h52w > 0 ? (price - h52w) / h52w * 100 : 0;
+
+  // ── DL/EBITDA (se disponível) ─────────────────────────────────
+  const totalDebt = parseFloat(data.totalDebt) || 0;
+  const totalCash = parseFloat(data.totalCash) || 0;
+  const ebitda    = parseFloat(data.ebitda)    || 0;
+  const netDebt   = totalDebt - totalCash;
+  const dlEbitda  = ebitda > 0 ? netDebt / ebitda : null;
+
+  // ── SCORE ──────────────────────────────────────────────────────
+  let score = 0;
+  const alertas = [];
+
+  // DY ≥ 6%
+  if      (dy >= 0.06) score += 2;
+  else if (dy < 0.03 && divL12m > 0) alertas.push('DY muito baixo (<3%)');
+  else if (divL12m === 0)             alertas.push('Sem dividendos no L12M');
+
+  // Preço < Teto Bazin — peso 3
+  if      (tetoBazin > 0 && price < tetoBazin)  score += 3;
+  else if (tetoBazin > 0)                        alertas.push('Acima do teto Bazin');
+  else                                           alertas.push('Sem histórico de dividendos para calcular teto');
+
+  // DL/EBITDA ≤ 3
+  if      (dlEbitda !== null && dlEbitda <= 3.0) score += 2;
+  else if (dlEbitda !== null && dlEbitda > 3.0)  alertas.push(`Dívida alta (DL/EBITDA: ${dlEbitda.toFixed(1)}x)`);
+
+  // Setor BESST
+  if (isBESST)  score += 1;
+  if (isCiclic) { score -= 1; alertas.push('Setor cíclico'); }
+
+  // Payout sustentável [MELHORIA 4]
+  if (payout !== null) {
+    if      (payout >= 0.20 && payout <= 0.85) score += 1;
+    else if (payout > 0.85) alertas.push(`Payout elevado (${(payout*100).toFixed(0)}%)`);
+  }
+
+  // Consistência ≥ 4 anos [MELHORIA 5]
+  if      (yearsDiv >= 4) score += 1;
+  else if (yearsDiv < 2 && divL12m > 0) alertas.push('Histórico curto de dividendos');
+
+  // P/L sanidade [MELHORIA 7]
+  if (pl !== null && !isNaN(pl)) {
+    if      (pl > 20) { score -= 1; alertas.push(`P/L elevado (${pl.toFixed(1)}x)`); }
+    else if (pl < 0)  alertas.push('LPA negativo');
+  }
+
+  // Value Trap
+  if (queda52w < -20 && dy > 0.10) {
+    alertas.push('⚠️ Possível Value Trap');
+    score -= 2;
+  }
+
+  // ── Status ─────────────────────────────────────────────────────
+  let status, bc;
+  if      (score >= 9) { status = '★ COMPRA FORTE'; bc = 'b-cf'; }
+  else if (score >= 7) { status = 'COMPRA';          bc = 'b-c';  }
+  else if (score >= 4) { status = 'AGUARDAR';        bc = 'b-a';  }
+  else                 { status = 'REAVALIAR';       bc = 'b-r';  }
+
+  // ── Sell Signal ────────────────────────────────────────────────
+  let sig = null, varPerc = null;
+  if (avgPrice && avgPrice > 0) {
+    varPerc = ((price - avgPrice) / avgPrice) * 100;
+    if      (varPerc >= 80) sig = { lv:3, label:'Vender 75% — 3º nível', bc:'b-s3' };
+    else if (varPerc >= 50) sig = { lv:2, label:'Vender 50% acumulado',   bc:'b-s2' };
+    else if (varPerc >= 30) sig = { lv:1, label:'Vender 25%',             bc:'b-s1' };
+    else                    sig = { lv:0, label:'Manter',                 bc:'b-h'  };
+
+    // Teto Bazin ultrapassado em 20%+
+    if (tetoBazin > 0 && price > tetoBazin * 1.20 && sig.lv === 0) {
+      sig = { lv:1, label:'Acima teto Bazin +20% — avaliar saída', bc:'b-s1' };
+      if (!alertas.includes('Acima do teto Bazin')) alertas.push('Preço 20%+ acima do teto Bazin');
+    }
+
+    // Concentração
+    if (totalPortValue && qty) {
+      const w = (price * qty) / totalPortValue * 100;
+      if (w > 20) alertas.push(`Concentração ${w.toFixed(1)}% — rebalancear`);
+    }
+  }
+
+  // Earnings Yield para ranking
+  const ey = pl && pl > 0 ? (1 / pl) * 100 : (lpa > 0 ? lpa / price * 100 : 0);
+
+  return {
+    symbol: data.symbol, name,
+    price, avgPrice, qty,
+    divL12m, avg3y, divBase,
+    dy: dy * 100, yearsDiv,
+    payout: payout !== null ? payout * 100 : null,
+    tetoBazin, margem,
+    precoGraham, precoGordon,
+    dlEbitda, lpa, vpa, pl,
+    roe: parseFloat(data.returnOnEquity) || 0,
+    score, status, bc,
+    alertas, sig, varPerc, queda52w, ey,
+    isCiclic, isBESST
+  };
+}
+
+// ── Ranking Magic Formula (proxy) ─────────────
+function calcRanking(items) {
+  const valid = items.filter(i => i.ey > 0);
+  const rank  = (arr, key, asc = false) => {
+    const s = [...arr].sort((a,b) => asc ? a[key]-b[key] : b[key]-a[key]);
+    const r = {}; s.forEach((item,i) => { r[item.symbol] = i+1; }); return r;
+  };
+  const rEY = rank(valid, 'ey');
+  const rDY = rank(valid, 'dy');
+  items.forEach(item => {
+    item.rankFM = (rEY[item.symbol] || valid.length+1) + (rDY[item.symbol] || valid.length+1);
+  });
+  const sorted = [...items].sort((a,b) => (a.rankFM||9999)-(b.rankFM||9999));
+  sorted.forEach((item,i) => { item.rank = i+1; });
+  return items;
+}
+
+// ══════════════════════════════════════════════
+//  ANALYZE PORTFOLIO
+// ══════════════════════════════════════════════
+async function analyzePortfolio() {
+  if (!S.portfolio.length) return toast('Adicione ativos à carteira primeiro', 'error');
+  const btn = document.getElementById('btnP');
+  btn.disabled = true; btn.textContent = '⏳ Buscando dados...';
+  document.getElementById('portfolioResults').innerHTML =
+    `<div class="loading"><div class="spinner"></div><p>Consultando Yahoo Finance para ${S.portfolio.length} ativo(s)...</p></div>`;
+  try {
+    const tickers = S.portfolio.map(p => p.ticker);
+    const raw     = await fetchStocks(tickers);
+
+    let totalValue = 0;
+    S.portfolio.forEach(p => {
+      const d = raw[p.ticker];
+      if (d && p.qty) totalValue += parseFloat(d.regularMarketPrice || 0) * p.qty;
+    });
+
+    const analyzed = [];
+    S.portfolio.forEach(p => {
+      const d = raw[p.ticker];
+      if (!d) { toast(`Dados não encontrados para ${p.ticker}`, 'error'); return; }
+      const r = analyzeStock(d, p.avgPrice, p.qty, totalValue || null);
+      if (r) analyzed.push(r);
+    });
+
+    renderPortfolioResults(analyzed, totalValue);
+    if (analyzed.length) toast(`${analyzed.length} ativo(s) analisado(s) com sucesso`, 'success');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('portfolioResults').innerHTML =
+      `<div class="empty"><span class="icon">⚠️</span>Erro ao buscar dados. Verifique o console.</div>`;
+  }
+  btn.disabled = false; btn.textContent = '⚡ Analisar Carteira';
+}
+
+function renderPortfolioResults(items, totalValue) {
+  const el = document.getElementById('portfolioResults');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty"><span class="icon">📭</span>Nenhum dado retornado. Verifique os tickers.</div>`;
+    return;
+  }
+
+  const totalInv = items.reduce((s,i) => s + (i.avgPrice && i.qty ? i.avgPrice * i.qty : 0), 0);
+  const totalCur = items.reduce((s,i) => s + (i.price && i.qty ? i.price * i.qty : 0), 0);
+  const ret      = totalInv > 0 ? (totalCur - totalInv) / totalInv * 100 : null;
+  const dyMed    = items.reduce((s,i)=>s+i.dy,0) / items.length;
+  const sellQty  = items.filter(i => i.sig && i.sig.lv > 0).length;
+
+  const summaryHtml = totalInv > 0 ? `
+    <div class="summary-grid">
+      <div class="summary-card"><div class="s-label">Capital Alocado</div><div class="s-value">R$${fmt(totalInv)}</div></div>
+      <div class="summary-card ${ret >= 0 ? 'hl-gold' : ''}">
+        <div class="s-label">Valor de Mercado</div>
+        <div class="s-value ${ret >= 0 ? 'c-green' : 'c-red'}">R$${fmt(totalCur)}</div>
+        ${ret !== null ? `<div class="s-sub ${ret >= 0 ? 'c-green' : 'c-red'}">${ret >= 0?'+':''}${ret.toFixed(2)}% retorno total</div>` : ''}
+      </div>
+      <div class="summary-card"><div class="s-label">DY Médio Carteira</div><div class="s-value c-amber">${dyMed.toFixed(2)}%</div><div class="s-sub">a.a. — L12M / preço atual</div></div>
+      ${sellQty ? `<div class="summary-card" style="border-color:var(--amber-lt)"><div class="s-label">Sinais de Venda</div><div class="s-value c-amber">${sellQty}</div><div class="s-sub">ativo(s) com gatilho ativo</div></div>` : ''}
+    </div>` : '';
+
+  const rows = items.map(item => {
+    const logo     = `<div class="t-logo-fb">${item.symbol[0]}</div>`;
+    const varHtml  = item.varPerc !== null
+      ? `<span class="mono ${item.varPerc >= 0 ? 'c-green':'c-red'}">${item.varPerc >= 0?'+':''}${item.varPerc.toFixed(2)}%</span>`
+      : '<span class="no-data">—</span>';
+    const sc       = item.score;
+    const scColor  = sc >= 7 ? '#4ade80' : sc >= 5 ? '#60a5fa' : sc >= 3 ? '#fbbf24' : '#f87171';
+    const sigHtml  = item.sig ? `<span class="badge ${item.sig.bc}">${item.sig.label}</span>` : '<span class="no-data">—</span>';
+    const teto     = item.tetoBazin > 0
+      ? `<span class="mono ${item.price < item.tetoBazin ? 'c-green':'c-red'}">R$${item.tetoBazin.toFixed(2)}</span>`
+      : '<span class="no-data">—</span>';
+    const margemHtml = item.margem !== null
+      ? `<span class="mono ${item.margem >= 10 ? 'c-green' : item.margem >= 0 ? 'c-amber':'c-red'}">${item.margem >= 0?'+':''}${item.margem.toFixed(1)}%</span>`
+      : '<span class="no-data">—</span>';
+    const dlHtml   = item.dlEbitda !== null
+      ? `<span class="mono ${item.dlEbitda <= 3 ? 'c-green':'c-red'}">${item.dlEbitda.toFixed(1)}x</span>`
+      : '<span class="no-data">—</span>';
+    const alertas  = item.alertas.length
+      ? `<div class="alert-list">${item.alertas.map(a=>`<div class="alert-item">• ${a}</div>`).join('')}</div>`
+      : '<span class="no-data">—</span>';
+    return `<tr>
+      <td><div class="ticker-cell">${logo}<div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
+      <td class="mono">${item.avgPrice ? 'R$'+item.avgPrice.toFixed(2) : '—'}</td>
+      <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
+      <td>${varHtml}</td>
+      <td>
+        <div class="score-wrap">
+          <span class="score-num" style="color:${scColor}">${sc}</span>
+          <div class="score-bar"><div class="score-fill" style="width:${Math.max(0,Math.min(100,sc/11*100))}%;background:${scColor}"></div></div>
+        </div>
+      </td>
+      <td><span class="badge ${item.bc}">${item.status}</span></td>
+      <td class="mono c-amber">${item.dy.toFixed(2)}%</td>
+      <td>${teto}</td>
+      <td>${margemHtml}</td>
+      <td>${dlHtml}</td>
+      <td>${sigHtml}</td>
+      <td>${alertas}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    ${summaryHtml}
+    <div class="section-header">
+      <h2>Análise da Carteira</h2>
+      <span>${items.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Ativo</th><th>Preço Médio</th><th>Preço Atual</th><th>Variação</th>
+        <th>Score /11</th><th>Status Bazin</th><th>DY %</th><th>Teto Bazin</th>
+        <th>Margem</th><th>DL/EBITDA</th><th>Sinal de Venda</th><th>Alertas</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="footnote">
+      Sinal de Venda: +30% → vender 25% · +50% → 50% acumulado · +80% → 75% acumulado. Score máx. 11 pts.
+      Dados: Yahoo Finance via Netlify Functions. Não constitui recomendação de investimento.
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  ANALYZE WATCHLIST
+// ══════════════════════════════════════════════
+async function analyzeWatchlist() {
+  if (!S.watchlist.length) return toast('Adicione ativos à watchlist primeiro', 'error');
+  const btn = document.getElementById('btnW');
+  btn.disabled = true; btn.textContent = '⏳ Buscando dados...';
+  document.getElementById('watchlistResults').innerHTML =
+    `<div class="loading"><div class="spinner"></div><p>Consultando Yahoo Finance para ${S.watchlist.length} ativo(s)...</p></div>`;
+  try {
+    const tickers  = S.watchlist.map(w => w.ticker);
+    const raw      = await fetchStocks(tickers);
+    const analyzed = [];
+    S.watchlist.forEach(w => {
+      const d = raw[w.ticker];
+      if (!d) { toast(`Dados não encontrados para ${w.ticker}`, 'error'); return; }
+      const r = analyzeStock(d);
+      if (r) analyzed.push(r);
+    });
+    calcRanking(analyzed);
+    renderWatchlistResults(analyzed);
+    if (analyzed.length) toast(`${analyzed.length} ativo(s) analisado(s) com sucesso`, 'success');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('watchlistResults').innerHTML =
+      `<div class="empty"><span class="icon">⚠️</span>Erro ao buscar dados. Verifique o console.</div>`;
+  }
+  btn.disabled = false; btn.textContent = '⚡ Analisar Watchlist';
+}
+
+function renderWatchlistResults(items) {
+  const el = document.getElementById('watchlistResults');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty"><span class="icon">📭</span>Nenhum dado retornado.</div>`;
+    return;
+  }
+
+  const sorted  = [...items].sort((a,b) => (a.rank||999)-(b.rank||999));
+  const buys    = sorted.filter(i => i.status.includes('COMPRA')).slice(0, 3);
+  const amounts = [600, 500, 400];
+
+  const dcaHtml = buys.length ? `
+    <div class="dca-card">
+      <h3>💡 Sugestão DCA — ${new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} (R$ 1.500,00)</h3>
+      <div class="dca-items">
+        ${buys.map((item,i) => `
+          <div class="dca-item">
+            <span class="dca-pos">${i+1}º</span>
+            <span class="dca-ticker">${item.symbol}</span>
+            <span class="dca-metrics">
+              Score ${item.score}/11 &nbsp;·&nbsp; DY ${item.dy.toFixed(1)}%
+              ${item.margem !== null ? ` &nbsp;·&nbsp; Margem ${item.margem >= 0?'+':''}${item.margem.toFixed(1)}%` : ''}
+              &nbsp;·&nbsp; Teto R$${item.tetoBazin > 0 ? item.tetoBazin.toFixed(2) : '—'}
+            </span>
+            <span class="dca-amount">R$${(amounts[i]||400).toLocaleString('pt-BR')}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const cf = items.filter(i => i.status.includes('FORTE')).length;
+  const c  = items.filter(i => i.status === 'COMPRA').length;
+  const a  = items.filter(i => i.status === 'AGUARDAR').length;
+
+  const summaryHtml = `
+    <div class="summary-grid">
+      <div class="summary-card hl-gold"><div class="s-label">★ Compra Forte</div><div class="s-value">${cf}</div></div>
+      <div class="summary-card"><div class="s-label">✓ Compra</div><div class="s-value c-blue">${c}</div></div>
+      <div class="summary-card"><div class="s-label">⏳ Aguardar</div><div class="s-value c-amber">${a}</div></div>
+      <div class="summary-card"><div class="s-label">DY Médio</div><div class="s-value c-amber">${(items.reduce((s,i)=>s+i.dy,0)/items.length).toFixed(2)}%</div></div>
+    </div>`;
+
+  const rows = sorted.map(item => {
+    const sc      = item.score;
+    const scColor = sc >= 7 ? '#4ade80' : sc >= 5 ? '#60a5fa' : sc >= 3 ? '#fbbf24' : '#f87171';
+    const teto    = item.tetoBazin > 0
+      ? `<span class="mono ${item.price < item.tetoBazin ? 'c-green':'c-red'}">R$${item.tetoBazin.toFixed(2)}</span>`
+      : '<span class="no-data">—</span>';
+    const margemHtml = item.margem !== null
+      ? `<span class="mono ${item.margem >= 10 ? 'c-green' : item.margem >= 0 ? 'c-amber':'c-red'}">${item.margem >= 0?'+':''}${item.margem.toFixed(1)}%</span>`
+      : '<span class="no-data">—</span>';
+    const grahamHtml = item.precoGraham > 0
+      ? `<span class="mono ${item.price < item.precoGraham ? 'c-green':'c-red'}">R$${item.precoGraham.toFixed(2)}</span>`
+      : '<span class="no-data">—</span>';
+    const dlHtml  = item.dlEbitda !== null
+      ? `<span class="mono ${item.dlEbitda <= 3 ? 'c-green':'c-red'}">${item.dlEbitda.toFixed(1)}x</span>`
+      : '<span class="no-data">—</span>';
+    const payoutHtml = item.payout !== null
+      ? `<span class="mono ${item.payout <= 85 ? 'c-green':'c-red'}">${item.payout.toFixed(0)}%</span>`
+      : '<span class="no-data">—</span>';
+    const alertas = item.alertas.length
+      ? `<div class="alert-list">${item.alertas.map(a=>`<div class="alert-item">• ${a}</div>`).join('')}</div>`
+      : '<span class="no-data">—</span>';
+    return `<tr>
+      <td class="mono c-dim" style="text-align:center;font-size:.78rem">#${item.rank||'—'}</td>
+      <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
+      <td>
+        <div class="score-wrap">
+          <span class="score-num" style="color:${scColor}">${sc}</span>
+          <div class="score-bar"><div class="score-fill" style="width:${Math.max(0,Math.min(100,sc/11*100))}%;background:${scColor}"></div></div>
+        </div>
+      </td>
+      <td><span class="badge ${item.bc}">${item.status}</span></td>
+      <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
+      <td>${teto}</td>
+      <td>${margemHtml}</td>
+      <td class="mono c-amber">${item.dy.toFixed(2)}%</td>
+      <td class="mono c-dim">${item.yearsDiv}/5 anos</td>
+      <td>${payoutHtml}</td>
+      <td>${dlHtml}</td>
+      <td class="mono c-dim">${item.pl ? item.pl.toFixed(1)+'x' : '—'}</td>
+      <td>${grahamHtml}</td>
+      <td>${alertas}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    ${summaryHtml}
+    ${dcaHtml}
+    <div class="section-header">
+      <h2>Análise Watchlist — Estratégia Bazin</h2>
+      <span>${items.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>#</th><th>Ativo</th><th>Score /11</th><th>Status</th>
+        <th>Preço</th><th>Teto Bazin</th><th>Margem</th><th>DY %</th>
+        <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Alertas</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="footnote">
+      Ranking = Earnings Yield + DY (proxy Magic Formula Greenblatt). Score máx. 11 pts.
+      Dados: Yahoo Finance via Netlify Functions. Não constitui recomendação de investimento.
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function fmt(n) { return n.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+
+init();
+</script>
+</body>
+</html>

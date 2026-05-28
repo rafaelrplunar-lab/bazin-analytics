@@ -4,7 +4,11 @@ const { randomUUID } = require("crypto");
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const API_KEY = process.env.AIRTABLE_API_KEY;
 
-// Nomes dos campos no Airtable (ajuste via env vars se necessário)
+// Nomes das tabelas e campos no Airtable (ajuste via env vars se necessário)
+const T = {
+  portfolio: process.env.AT_TABLE_PORTFOLIO || "Portfolio",
+  watchlist: process.env.AT_TABLE_WATCHLIST || "Watchlist",
+};
 const F = {
   ticker:   process.env.AT_F_TICKER    || "Ticker",
   avgPrice: process.env.AT_F_AVG_PRICE || "Preco_Medio",
@@ -89,12 +93,12 @@ exports.handler = async (event) => {
     // ── GET: carrega carteira e watchlist ─────────────────────
     if (event.httpMethod === "GET") {
       const [pRecs, wRecs] = await Promise.all([
-        listRecords("Portfolio"),
-        listRecords("Watchlist"),
+        listRecords(T.portfolio),
+        listRecords(T.watchlist),
       ]);
 
-      console.log("GET — Portfolio records:", pRecs?.length ?? "tabela não encontrada");
-      console.log("GET — Watchlist records:", wRecs?.length ?? "tabela não encontrada");
+      console.log(`GET — ${T.portfolio} records:`, pRecs?.length ?? "tabela não encontrada");
+      console.log(`GET — ${T.watchlist} records:`, wRecs?.length ?? "tabela não encontrada");
 
       const portfolio = (pRecs || []).map(r => ({
         id:       randomUUID(),
@@ -118,15 +122,15 @@ exports.handler = async (event) => {
       console.log("POST — salvando portfolio:", portfolio.length, "watchlist:", watchlist.length);
 
       const [pRecs, wRecs] = await Promise.all([
-        listRecords("Portfolio"),
-        listRecords("Watchlist"),
+        listRecords(T.portfolio),
+        listRecords(T.watchlist),
       ]);
 
       // Portfolio
       if (pRecs !== null) {
-        if (pRecs.length) await deleteRecords("Portfolio", pRecs.map(r => r.id));
+        if (pRecs.length) await deleteRecords(T.portfolio, pRecs.map(r => r.id));
         if (portfolio.length) {
-          await createRecords("Portfolio", portfolio.map(p => ({
+          await createRecords(T.portfolio, portfolio.map(p => ({
             [F.ticker]:   p.ticker,
             [F.avgPrice]: p.avgPrice,
             ...(p.qty != null ? { [F.qty]: p.qty } : {}),
@@ -137,9 +141,9 @@ exports.handler = async (event) => {
 
       // Watchlist (opcional — pula se tabela não existir)
       if (wRecs !== null) {
-        if (wRecs.length) await deleteRecords("Watchlist", wRecs.map(r => r.id));
+        if (wRecs.length) await deleteRecords(T.watchlist, wRecs.map(r => r.id));
         if (watchlist.length) {
-          await createRecords("Watchlist", watchlist.map(w => ({
+          await createRecords(T.watchlist, watchlist.map(w => ({
             [F.ticker]: w.ticker,
           })));
         }

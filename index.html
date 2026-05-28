@@ -523,9 +523,9 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const yahooRate=parseFloat(data.trailingAnnualDividendRate)||0;
   const divL12m=yahooRate>0?yahooRate:divL12m_chart;
 
-  // Teto Bazin: média pura dos últimos 5 anos de histórico do chart
-  const avg5y=avgByYear(d5y);
-  const divBase=avg5y||divL12m;
+  // Teto Bazin: blend estabilidade da média 3a (60%) + recência do L12M chart (40%)
+  const avg3y=avgByYear(d3y);
+  const divBase=avg3y>0&&divL12m_chart>0?avg3y*0.6+divL12m_chart*0.4:(avg3y||divL12m_chart);
 
   const dy=price>0?divL12m/price:0;
 
@@ -627,7 +627,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
 
   return {
     symbol:data.symbol,name,price,avgPrice,qty,
-    divL12m,avg5y,divBase,dy:dy*100,yearsDiv,
+    divL12m,avg3y,divBase,dy:dy*100,yearsDiv,
     payout:payout!==null?payout*100:null,
     tetoBazin,margem,precoGraham,precoGordon,
     dlEbitda,lpa,vpa,pl,

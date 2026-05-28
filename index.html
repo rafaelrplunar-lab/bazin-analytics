@@ -377,6 +377,7 @@ const FS = {
 let _pData=[], _wData=[];
 
 function init() {
+  // 1. Carrega localStorage imediatamente (resposta rápida)
   try { const sv=JSON.parse(localStorage.getItem('bazin_v3')||'{}'); S.portfolio=sv.portfolio||[]; S.watchlist=sv.watchlist||[]; } catch(e){}
   renderChips(); updateHints();
   const uz=document.getElementById('uploadZone');
@@ -391,8 +392,41 @@ function init() {
   uzw.addEventListener('dragleave',()=>uzw.classList.remove('dragover'));
   uzw.addEventListener('drop',e=>{e.preventDefault();uzw.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImportFileW(f);});
   document.getElementById('fileImportW').addEventListener('change',function(){if(this.files[0])processImportFileW(this.files[0]);this.value='';});
+  // 2. Tenta carregar do Airtable (fonte autoritativa)
+  loadFromAirtable();
 }
-function save(){ localStorage.setItem('bazin_v3',JSON.stringify(S)); }
+
+let _syncTimer=null;
+function save(){
+  localStorage.setItem('bazin_v3',JSON.stringify(S));
+  // Debounce: aguarda 800ms de inatividade antes de sincronizar
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(syncToAirtable, 800);
+}
+
+async function syncToAirtable(){
+  try{
+    const res=await fetch('/.netlify/functions/portfolio-data',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(S),
+    });
+    if(!res.ok) console.warn('Airtable sync falhou:',res.status);
+  }catch(e){console.warn('Airtable sync erro:',e.message);}
+}
+
+async function loadFromAirtable(){
+  try{
+    const res=await fetch('/.netlify/functions/portfolio-data');
+    if(!res.ok) return;
+    const data=await res.json();
+    if(!data.portfolio&&!data.watchlist) return;
+    S.portfolio=data.portfolio||[];
+    S.watchlist=data.watchlist||[];
+    localStorage.setItem('bazin_v3',JSON.stringify(S));
+    renderChips(); updateHints();
+  }catch(e){console.warn('Airtable load erro (usando localStorage):',e.message);}
+}
 
 function switchTab(tab,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));

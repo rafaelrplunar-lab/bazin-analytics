@@ -397,9 +397,11 @@ function init() {
 }
 
 let _syncTimer=null;
+let _locallyModified=false;
+
 function save(){
+  _locallyModified=true;
   localStorage.setItem('bazin_v3',JSON.stringify(S));
-  // Debounce: aguarda 800ms de inatividade antes de sincronizar
   clearTimeout(_syncTimer);
   _syncTimer=setTimeout(syncToAirtable, 800);
 }
@@ -411,7 +413,10 @@ async function syncToAirtable(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(S),
     });
-    if(!res.ok) console.warn('Airtable sync falhou:',res.status);
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      toast(`Airtable: ${err.error||'erro ao salvar (verifique nomes dos campos)'}`, 'error', 5000);
+    }
   }catch(e){console.warn('Airtable sync erro:',e.message);}
 }
 
@@ -420,7 +425,10 @@ async function loadFromAirtable(){
     const res=await fetch('/.netlify/functions/portfolio-data');
     if(!res.ok) return;
     const data=await res.json();
-    if(!data.portfolio&&!data.watchlist) return;
+    // Não sobrescreve se usuário já modificou dados localmente (evita race condition)
+    if(_locallyModified) return;
+    // Não sobrescreve se Airtable retornou vazio (campo pode estar com nome errado)
+    if(!data.portfolio?.length && !data.watchlist?.length) return;
     S.portfolio=data.portfolio||[];
     S.watchlist=data.watchlist||[];
     localStorage.setItem('bazin_v3',JSON.stringify(S));

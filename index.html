@@ -252,7 +252,14 @@ tr:hover td{background:var(--surface2)}
         <button class="btn btn-add" onclick="addWatchlist()">+ Adicionar</button>
       </div>
       <div class="chips" id="watchlistChips"></div>
-      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+      <div class="upload-divider"><span>ou importe um arquivo</span></div>
+      <div class="upload-zone" id="uploadZoneW">
+        <input type="file" id="fileImportW" accept=".csv,.xlsx,.xls" style="display:none">
+        <p>📂 Clique ou arraste um arquivo CSV ou Excel</p>
+        <small>Apenas a coluna Ticker é necessária — dados serão buscados via API</small>
+      </div>
+      <div id="importPreviewW" style="display:none"></div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:1.25rem">
         <button class="btn btn-analyze" id="btnW" onclick="analyzeWatchlist()">⚡ Analisar Watchlist</button>
         <span id="hintW" style="font-size:.73rem;color:var(--text-dim)"></span>
       </div>
@@ -378,6 +385,12 @@ function init() {
   uz.addEventListener('dragleave',()=>uz.classList.remove('dragover'));
   uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImportFile(f);});
   document.getElementById('fileImport').addEventListener('change',function(){if(this.files[0])processImportFile(this.files[0]);this.value='';});
+  const uzw=document.getElementById('uploadZoneW');
+  uzw.addEventListener('click',()=>document.getElementById('fileImportW').click());
+  uzw.addEventListener('dragover',e=>{e.preventDefault();uzw.classList.add('dragover');});
+  uzw.addEventListener('dragleave',()=>uzw.classList.remove('dragover'));
+  uzw.addEventListener('drop',e=>{e.preventDefault();uzw.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImportFileW(f);});
+  document.getElementById('fileImportW').addEventListener('change',function(){if(this.files[0])processImportFileW(this.files[0]);this.value='';});
 }
 function save(){ localStorage.setItem('bazin_v3',JSON.stringify(S)); }
 
@@ -1062,6 +1075,97 @@ function confirmImport(){
 function cancelImport(){
   const el=document.getElementById('importPreview');
   el.style.display='none';el.innerHTML='';_importItems=[];
+}
+
+// ── Watchlist File Import ──────────────────────
+let _importItemsW=[];
+
+async function processImportFileW(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  let rows;
+  try{
+    if(ext==='csv'){
+      const text=await file.text();
+      rows=parseCSVRows(text);
+    }else if(ext==='xlsx'||ext==='xls'){
+      if(!window.XLSX) return toast('Biblioteca XLSX não carregada. Recarregue a página.','error');
+      const buf=await file.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    }else{
+      return toast('Formato não suportado. Use CSV ou XLSX.','error');
+    }
+  }catch(e){console.error(e);return toast('Erro ao ler o arquivo.','error');}
+  if(!rows||rows.length<2) return toast('Arquivo sem dados suficientes.','error');
+  const{items,error}=mapImportRowsW(rows);
+  if(error) return toast(error,'error');
+  if(!items.length) return toast('Nenhum ticker válido encontrado.','error');
+  showImportPreviewW(items);
+}
+
+function mapImportRowsW(rows){
+  const TICKER_ALIASES=['ticker','ativo','codigo','papel','sigla','stock','symbol','acoes','acao'];
+  const headers=rows[0].map(normHeader);
+  let tickerCol=TICKER_ALIASES.reduce((f,a)=>{if(f!==-1)return f;const i=headers.indexOf(a);return i!==-1?i:-1;},-1);
+  if(tickerCol===-1)
+    tickerCol=headers.findIndex(h=>TICKER_ALIASES.some(a=>h.startsWith(a)||a.startsWith(h)));
+  // Fallback: se coluna 0 da segunda linha parece um ticker B3
+  if(tickerCol===-1){
+    const s=String(rows[1]?.[0]||'').trim().toUpperCase().replace(/\.SA$/,'');
+    if(/^[A-Z]{3,5}\d{1,2}$/.test(s)) tickerCol=0;
+  }
+  if(tickerCol===-1)
+    return{items:[],error:`Coluna de ticker não encontrada. Cabeçalhos: ${rows[0].slice(0,6).join(', ')}`};
+  const items=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    if(!r||r.every(c=>!String(c).trim())) continue;
+    const ticker=String(r[tickerCol]||'').trim().toUpperCase().replace(/\.SA$/,'').replace(/\s/g,'');
+    if(!ticker||ticker.length<3) continue;
+    const isDup=S.watchlist.some(w=>w.ticker===ticker);
+    items.push({ticker,isDup});
+  }
+  return{items,error:null};
+}
+
+function showImportPreviewW(items){
+  _importItemsW=items.filter(i=>!i.isDup);
+  const dups=items.filter(i=>i.isDup);
+  const el=document.getElementById('importPreviewW');
+  el.style.display='block';
+  const trs=items.map(i=>`<tr${i.isDup?' class="row-dup"':''}>
+    <td>${i.ticker}</td>
+    <td style="font-size:.7rem;color:${i.isDup?'var(--amber-lt)':'var(--green-lt)'}">${i.isDup?'⚠️ já existe':'✓ novo'}</td></tr>`).join('');
+  el.innerHTML=`<div class="import-preview-wrap">
+    <h4>📋 Prévia — ${items.length} ticker(s) detectado(s)</h4>
+    <div style="overflow-x:auto"><table class="import-tbl">
+      <thead><tr><th>Ticker</th><th>Status</th></tr></thead>
+      <tbody>${trs}</tbody></table></div>
+    ${dups.length?`<p style="font-size:.72rem;color:var(--amber-lt);margin-bottom:.75rem">⚠️ ${dups.length} ticker(s) já existem na watchlist e serão ignorados.</p>`:''}
+    <div class="import-actions">
+      <button class="btn btn-import" onclick="confirmImportW()">✓ Adicionar ${_importItemsW.length} ticker(s)</button>
+      <button class="btn btn-imp-cancel" onclick="cancelImportW()">Cancelar</button>
+      <span style="font-size:.72rem;color:var(--text-dim)">${_importItemsW.length} novo(s)${dups.length?` · ${dups.length} ignorado(s)`:''}</span>
+    </div></div>`;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function confirmImportW(){
+  if(!_importItemsW.length) return toast('Nenhum ticker novo para adicionar.','error');
+  _importItemsW.forEach(item=>{
+    if(!S.watchlist.find(w=>w.ticker===item.ticker))
+      S.watchlist.push({id:crypto.randomUUID(),ticker:item.ticker});
+  });
+  const n=_importItemsW.length;
+  _importItemsW=[];
+  save();renderChips();updateHints();cancelImportW();
+  toast(`${n} ticker(s) adicionado(s) à watchlist!`,'success');
+}
+
+function cancelImportW(){
+  const el=document.getElementById('importPreviewW');
+  el.style.display='none';el.innerHTML='';_importItemsW=[];
 }
 
 init();

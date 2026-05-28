@@ -38,7 +38,7 @@ function airtableReq(method, path, body = null) {
   });
 }
 
-// Retorna null se a tabela não existir
+// Retorna null se a tabela não existir, lança erro em outros casos
 async function listRecords(table) {
   const records = [];
   let offset = "";
@@ -46,6 +46,9 @@ async function listRecords(table) {
     const qs = offset ? `?offset=${encodeURIComponent(offset)}` : "";
     const res = await airtableReq("GET", `/v0/${BASE_ID}/${encodeURIComponent(table)}${qs}`);
     if (res.status === 404 || res.status === 422) return null;
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`Airtable: API key inválida ou sem permissão (HTTP ${res.status})`);
+    }
     const json = JSON.parse(res.body);
     if (json.error) {
       console.error(`listRecords [${table}]:`, json.error);
@@ -89,6 +92,40 @@ exports.handler = async (event) => {
     })};
   }
 
+  // ── GET ?debug=true: diagnóstico da conexão ───────────────
+  if (event.httpMethod === "GET" && event.queryStringParameters?.debug === "true") {
+    const diag = {
+      config: {
+        base_id: BASE_ID ? BASE_ID.slice(0, 6) + "…" : "NÃO DEFINIDO",
+        api_key: API_KEY ? "pat" + API_KEY.slice(3, 8) + "…" : "NÃO DEFINIDO",
+        table_portfolio: T.portfolio,
+        table_watchlist: T.watchlist,
+        field_ticker:    F.ticker,
+        field_avgPrice:  F.avgPrice,
+        field_qty:       F.qty,
+      },
+    };
+    try {
+      const res = await airtableReq("GET", `/v0/${BASE_ID}/${encodeURIComponent(T.portfolio)}?maxRecords=1`);
+      diag.portfolio_http = res.status;
+      if (res.status === 200) {
+        const json = JSON.parse(res.body);
+        const rec = json.records?.[0];
+        diag.portfolio_status = "OK";
+        diag.portfolio_sample_fields = rec ? Object.keys(rec.fields) : "(tabela vazia)";
+      } else if (res.status === 401 || res.status === 403) {
+        diag.portfolio_status = "ERRO: API key inválida ou sem permissão";
+      } else if (res.status === 404) {
+        diag.portfolio_status = `ERRO: tabela "${T.portfolio}" não encontrada`;
+      } else {
+        diag.portfolio_status = `ERRO HTTP ${res.status}: ${res.body.slice(0, 200)}`;
+      }
+    } catch (e) {
+      diag.portfolio_status = `EXCEÇÃO: ${e.message}`;
+    }
+    return { statusCode: 200, headers, body: JSON.stringify(diag, null, 2) };
+  }
+
   try {
     // ── GET: carrega carteira e watchlist ─────────────────────
     if (event.httpMethod === "GET") {
@@ -126,18 +163,22 @@ exports.handler = async (event) => {
         listRecords(T.watchlist),
       ]);
 
-      // Portfolio
-      if (pRecs !== null) {
-        if (pRecs.length) await deleteRecords(T.portfolio, pRecs.map(r => r.id));
-        if (portfolio.length) {
-          await createRecords(T.portfolio, portfolio.map(p => ({
-            [F.ticker]:   p.ticker,
-            [F.avgPrice]: p.avgPrice,
-            ...(p.qty != null ? { [F.qty]: p.qty } : {}),
-          })));
-        }
-        console.log("Portfolio salvo:", portfolio.length, "registros");
+      // Portfolio — erro explícito se tabela não encontrada
+      if (pRecs === null) {
+        return { statusCode: 500, headers, body: JSON.stringify({
+          error: `Tabela "${T.portfolio}" não encontrada no Airtable. Verifique o nome exato da tabela ou configure AT_TABLE_PORTFOLIO.`,
+        })};
       }
+
+      if (pRecs.length) await deleteRecords(T.portfolio, pRecs.map(r => r.id));
+      if (portfolio.length) {
+        await createRecords(T.portfolio, portfolio.map(p => ({
+          [F.ticker]:   p.ticker,
+          [F.avgPrice]: p.avgPrice,
+          ...(p.qty != null ? { [F.qty]: p.qty } : {}),
+        })));
+      }
+      console.log("Portfolio salvo:", portfolio.length, "registros");
 
       // Watchlist (opcional — pula se tabela não existir)
       if (wRecs !== null) {

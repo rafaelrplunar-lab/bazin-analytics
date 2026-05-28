@@ -4,6 +4,13 @@ const { randomUUID } = require("crypto");
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const API_KEY = process.env.AIRTABLE_API_KEY;
 
+// Nomes dos campos no Airtable (ajuste via env vars se necessário)
+const F = {
+  ticker:   process.env.AT_F_TICKER    || "Ticker",
+  avgPrice: process.env.AT_F_AVG_PRICE || "Preco_Medio",
+  qty:      process.env.AT_F_QTY       || "Quantidade",
+};
+
 function airtableReq(method, path, body = null) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -36,7 +43,10 @@ async function listRecords(table) {
     const res = await airtableReq("GET", `/v0/${BASE_ID}/${encodeURIComponent(table)}${qs}`);
     if (res.status === 404 || res.status === 422) return null;
     const json = JSON.parse(res.body);
-    if (json.error) return null;
+    if (json.error) {
+      console.error(`listRecords [${table}]:`, json.error);
+      return null;
+    }
     records.push(...(json.records || []));
     offset = json.offset || "";
   } while (offset);
@@ -56,7 +66,7 @@ async function createRecords(table, fieldsList) {
     const batch = fieldsList.slice(i, i + 10).map(f => ({ fields: f }));
     const res = await airtableReq("POST", `/v0/${BASE_ID}/${encodeURIComponent(table)}`, { records: batch });
     const json = JSON.parse(res.body);
-    if (json.error) throw new Error(`Airtable create [${table}]: ${json.error.message || JSON.stringify(json.error)}`);
+    if (json.error) throw new Error(`createRecords [${table}]: ${json.error.message || JSON.stringify(json.error)}`);
   }
 }
 
@@ -70,35 +80,42 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers, body: "" };
 
   if (!BASE_ID || !API_KEY) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "AIRTABLE_BASE_ID ou AIRTABLE_API_KEY não configurados" }) };
+    return { statusCode: 500, headers, body: JSON.stringify({
+      error: "AIRTABLE_BASE_ID ou AIRTABLE_API_KEY não configurados"
+    })};
   }
 
   try {
-    // ── GET: carrega carteira e watchlist ──────────────────────
+    // ── GET: carrega carteira e watchlist ─────────────────────
     if (event.httpMethod === "GET") {
       const [pRecs, wRecs] = await Promise.all([
         listRecords("Portfolio"),
         listRecords("Watchlist"),
       ]);
 
+      console.log("GET — Portfolio records:", pRecs?.length ?? "tabela não encontrada");
+      console.log("GET — Watchlist records:", wRecs?.length ?? "tabela não encontrada");
+
       const portfolio = (pRecs || []).map(r => ({
         id:       randomUUID(),
-        ticker:   r.fields.ticker,
-        avgPrice: r.fields.avgPrice,
-        qty:      r.fields.qty ?? null,
-      })).filter(p => p.ticker);
+        ticker:   r.fields[F.ticker],
+        avgPrice: r.fields[F.avgPrice],
+        qty:      r.fields[F.qty] ?? null,
+      })).filter(p => p.ticker && p.avgPrice);
 
       const watchlist = (wRecs || []).map(r => ({
         id:     randomUUID(),
-        ticker: r.fields.ticker,
+        ticker: r.fields[F.ticker],
       })).filter(w => w.ticker);
 
       return { statusCode: 200, headers, body: JSON.stringify({ portfolio, watchlist }) };
     }
 
-    // ── POST: salva carteira e watchlist (full replace) ────────
+    // ── POST: salva carteira e watchlist (full replace) ───────
     if (event.httpMethod === "POST") {
       const { portfolio = [], watchlist = [] } = JSON.parse(event.body || "{}");
+
+      console.log("POST — salvando portfolio:", portfolio.length, "watchlist:", watchlist.length);
 
       const [pRecs, wRecs] = await Promise.all([
         listRecords("Portfolio"),
@@ -107,24 +124,26 @@ exports.handler = async (event) => {
 
       // Portfolio
       if (pRecs !== null) {
-        await deleteRecords("Portfolio", pRecs.map(r => r.id));
+        if (pRecs.length) await deleteRecords("Portfolio", pRecs.map(r => r.id));
         if (portfolio.length) {
           await createRecords("Portfolio", portfolio.map(p => ({
-            ticker:   p.ticker,
-            avgPrice: p.avgPrice,
-            ...(p.qty != null ? { qty: p.qty } : {}),
+            [F.ticker]:   p.ticker,
+            [F.avgPrice]: p.avgPrice,
+            ...(p.qty != null ? { [F.qty]: p.qty } : {}),
           })));
         }
+        console.log("Portfolio salvo:", portfolio.length, "registros");
       }
 
-      // Watchlist (tabela opcional — pula se não existir)
+      // Watchlist (opcional — pula se tabela não existir)
       if (wRecs !== null) {
-        await deleteRecords("Watchlist", wRecs.map(r => r.id));
+        if (wRecs.length) await deleteRecords("Watchlist", wRecs.map(r => r.id));
         if (watchlist.length) {
           await createRecords("Watchlist", watchlist.map(w => ({
-            ticker: w.ticker,
+            [F.ticker]: w.ticker,
           })));
         }
+        console.log("Watchlist salva:", watchlist.length, "registros");
       }
 
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };

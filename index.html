@@ -6,6 +6,7 @@
 <title>Bazin Analytics — Carteira de Dividendos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#07090f;--surface:#0c1119;--surface2:#101621;--surface3:#151d2e;
@@ -169,6 +170,26 @@ tr:hover td{background:var(--surface2)}
   .dca-metrics{display:none}.filter-count{display:none}
   .sector-row{grid-template-columns:100px 1fr 45px}
 }
+/* FILE UPLOAD */
+.upload-divider{display:flex;align-items:center;gap:.75rem;margin:1.25rem 0 .9rem}
+.upload-divider::before,.upload-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.upload-divider span{font-size:.68rem;color:var(--text-dim);white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:10px;padding:1.1rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface3);user-select:none}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(200,130,12,.07)}
+.upload-zone p{font-size:.82rem;color:var(--text-dim);margin:.2rem 0}
+.upload-zone small{font-size:.7rem;color:var(--text-dim);opacity:.65}
+.import-preview-wrap{background:var(--surface);border:1px solid rgba(200,130,12,.4);border-radius:10px;padding:1.25rem;margin-top:1rem}
+.import-preview-wrap h4{font-size:.82rem;color:var(--gold-lt);font-weight:600;margin-bottom:.9rem}
+.import-tbl{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:.9rem}
+.import-tbl th{padding:.35rem .75rem;text-align:left;font-size:.66rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.import-tbl td{padding:.35rem .75rem;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.import-tbl tr:last-child td{border-bottom:none}
+.row-dup td{color:var(--amber-lt)}
+.import-actions{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.btn-import{background:linear-gradient(135deg,var(--green),var(--green-lt));color:#000;font-weight:600;padding:.5rem 1.25rem}
+.btn-import:hover{opacity:.9}
+.btn-imp-cancel{background:var(--surface3);color:var(--text-dim);border:1px solid var(--border2)}
+.btn-imp-cancel:hover{border-color:var(--red-lt);color:var(--red-lt)}
 </style>
 </head>
 <body>
@@ -204,7 +225,14 @@ tr:hover td{background:var(--surface2)}
         <button class="btn btn-add" onclick="addPortfolio()">+ Adicionar</button>
       </div>
       <div class="chips" id="portfolioChips"></div>
-      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+      <div class="upload-divider"><span>ou importe um arquivo</span></div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileImport" accept=".csv,.xlsx,.xls" style="display:none">
+        <p>📂 Clique ou arraste um arquivo CSV ou Excel</p>
+        <small>Colunas esperadas: Ticker &middot; Preço Médio &middot; Qtd (opcional)</small>
+      </div>
+      <div id="importPreview" style="display:none"></div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:1.25rem">
         <button class="btn btn-analyze" id="btnP" onclick="analyzePortfolio()">⚡ Analisar Carteira</button>
         <span id="hintP" style="font-size:.73rem;color:var(--text-dim)"></span>
       </div>
@@ -344,6 +372,12 @@ let _pData=[], _wData=[];
 function init() {
   try { const sv=JSON.parse(localStorage.getItem('bazin_v3')||'{}'); S.portfolio=sv.portfolio||[]; S.watchlist=sv.watchlist||[]; } catch(e){}
   renderChips(); updateHints();
+  const uz=document.getElementById('uploadZone');
+  uz.addEventListener('click',()=>document.getElementById('fileImport').click());
+  uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('dragover');});
+  uz.addEventListener('dragleave',()=>uz.classList.remove('dragover'));
+  uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)processImportFile(f);});
+  document.getElementById('fileImport').addEventListener('change',function(){if(this.files[0])processImportFile(this.files[0]);this.value='';});
 }
 function save(){ localStorage.setItem('bazin_v3',JSON.stringify(S)); }
 
@@ -904,6 +938,128 @@ function reRenderWatchlist(){
 }
 
 function fmt(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// ══════════════════════════════════════════════
+//  FILE IMPORT (CSV / XLSX)
+// ══════════════════════════════════════════════
+let _importItems=[];
+
+async function processImportFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  let rows;
+  try{
+    if(ext==='csv'){
+      const text=await file.text();
+      rows=parseCSVRows(text);
+    }else if(ext==='xlsx'||ext==='xls'){
+      if(!window.XLSX) return toast('Biblioteca XLSX não carregada. Recarregue a página.','error');
+      const buf=await file.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    }else{
+      return toast('Formato não suportado. Use CSV ou XLSX.','error');
+    }
+  }catch(e){console.error(e);return toast('Erro ao ler o arquivo.','error');}
+  if(!rows||rows.length<2) return toast('Arquivo sem dados suficientes.','error');
+  const{items,error}=mapImportRows(rows);
+  if(error) return toast(error,'error');
+  if(!items.length) return toast('Nenhum ativo válido encontrado no arquivo.','error');
+  showImportPreview(items);
+}
+
+function parseCSVRows(text){
+  const lines=text.trim().split(/\r?\n/);
+  const first=lines[0];
+  const delim=[',',';','\t'].reduce((b,d)=>first.split(d).length>first.split(b).length?d:b,',');
+  return lines.map(l=>l.split(delim).map(c=>c.trim().replace(/^["']|["']$/g,'')));
+}
+
+function normHeader(s){
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'_');
+}
+
+function parseImportPrice(raw){
+  let s=String(raw).replace(/[R$\s]/g,'').trim();
+  const ld=s.lastIndexOf('.');
+  const lc=s.lastIndexOf(',');
+  if(ld>lc) s=s.replace(/,/g,'');
+  else if(lc>ld) s=s.replace(/\./g,'').replace(',','.');
+  return parseFloat(s)||0;
+}
+
+function mapImportRows(rows){
+  const headers=rows[0].map(normHeader);
+  const ALIASES={
+    ticker:['ticker','ativo','codigo','papel','sigla','stock','symbol','acoes','acao'],
+    avgPrice:['preco_medio','pm','preco_compra','preco_aquisicao','avg_price','average_price',
+              'preco','price','custo_medio','valor_medio','preco_unitario','vl_pm'],
+    qty:['quantidade','qtd','qty','cotas','shares','quantity','posicao','saldo','qtde'],
+  };
+  const col={};
+  for(const[f,als]of Object.entries(ALIASES)){
+    for(const a of als){const i=headers.indexOf(a);if(i!==-1){col[f]=i;break;}}
+    if(col[f]===undefined){
+      const i=headers.findIndex(h=>als.some(a=>h.startsWith(a)||a.startsWith(h)));
+      if(i!==-1) col[f]=i;
+    }
+  }
+  if(col.ticker===undefined||col.avgPrice===undefined)
+    return{items:[],error:`Colunas não encontradas. Cabeçalhos detectados: ${rows[0].slice(0,8).join(', ')}`};
+  const items=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    if(!r||r.every(c=>!String(c).trim())) continue;
+    const ticker=String(r[col.ticker]||'').trim().toUpperCase().replace(/\.SA$/,'').replace(/\s/g,'');
+    const price=parseImportPrice(r[col.avgPrice]);
+    const qty=col.qty!==undefined?parseInt(String(r[col.qty]||'').replace(/[^\d]/g,''))||null:null;
+    if(!ticker||ticker.length<3) continue;
+    if(!price||price<=0) continue;
+    const isDup=S.portfolio.some(p=>p.ticker===ticker);
+    items.push({ticker,avgPrice:price,qty,isDup});
+  }
+  return{items,error:null};
+}
+
+function showImportPreview(items){
+  _importItems=items.filter(i=>!i.isDup);
+  const dups=items.filter(i=>i.isDup);
+  const el=document.getElementById('importPreview');
+  el.style.display='block';
+  const trs=items.map(i=>`<tr${i.isDup?' class="row-dup"':''}>
+    <td>${i.ticker}</td><td>R$${i.avgPrice.toFixed(2)}</td><td>${i.qty??'—'}</td>
+    <td style="font-size:.7rem;color:${i.isDup?'var(--amber-lt)':'var(--green-lt)'}">${i.isDup?'⚠️ já existe':'✓ novo'}</td></tr>`).join('');
+  el.innerHTML=`<div class="import-preview-wrap">
+    <h4>📋 Prévia — ${items.length} ativo(s) detectado(s)</h4>
+    <div style="overflow-x:auto"><table class="import-tbl">
+      <thead><tr><th>Ticker</th><th>Preço Médio</th><th>Qtd</th><th>Status</th></tr></thead>
+      <tbody>${trs}</tbody></table></div>
+    ${dups.length?`<p style="font-size:.72rem;color:var(--amber-lt);margin-bottom:.75rem">⚠️ ${dups.length} ativo(s) já existem na carteira e serão ignorados.</p>`:''}
+    <div class="import-actions">
+      <button class="btn btn-import" onclick="confirmImport()">✓ Adicionar ${_importItems.length} ativo(s)</button>
+      <button class="btn btn-imp-cancel" onclick="cancelImport()">Cancelar</button>
+      <span style="font-size:.72rem;color:var(--text-dim)">${_importItems.length} novo(s)${dups.length?` · ${dups.length} ignorado(s)`:''}</span>
+    </div></div>`;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function confirmImport(){
+  if(!_importItems.length) return toast('Nenhum ativo novo para adicionar.','error');
+  _importItems.forEach(item=>{
+    if(!S.portfolio.find(p=>p.ticker===item.ticker))
+      S.portfolio.push({id:crypto.randomUUID(),ticker:item.ticker,avgPrice:item.avgPrice,qty:item.qty});
+  });
+  const n=_importItems.length;
+  _importItems=[];
+  save();renderChips();updateHints();cancelImport();
+  toast(`${n} ativo(s) importado(s) com sucesso!`,'success');
+}
+
+function cancelImport(){
+  const el=document.getElementById('importPreview');
+  el.style.display='none';el.innerHTML='';_importItems=[];
+}
+
 init();
 </script>
 </body>

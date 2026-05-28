@@ -1,4 +1,5 @@
-const https = require("https");
+const https   = require("https");
+const { randomUUID } = require("crypto");
 
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const API_KEY = process.env.AIRTABLE_API_KEY;
@@ -26,14 +27,16 @@ function airtableReq(method, path, body = null) {
   });
 }
 
+// Retorna null se a tabela não existir
 async function listRecords(table) {
   const records = [];
   let offset = "";
   do {
     const qs = offset ? `?offset=${encodeURIComponent(offset)}` : "";
     const res = await airtableReq("GET", `/v0/${BASE_ID}/${encodeURIComponent(table)}${qs}`);
+    if (res.status === 404 || res.status === 422) return null;
     const json = JSON.parse(res.body);
-    if (json.error) throw new Error(`Airtable error: ${json.error.message || JSON.stringify(json.error)}`);
+    if (json.error) return null;
     records.push(...(json.records || []));
     offset = json.offset || "";
   } while (offset);
@@ -53,13 +56,13 @@ async function createRecords(table, fieldsList) {
     const batch = fieldsList.slice(i, i + 10).map(f => ({ fields: f }));
     const res = await airtableReq("POST", `/v0/${BASE_ID}/${encodeURIComponent(table)}`, { records: batch });
     const json = JSON.parse(res.body);
-    if (json.error) throw new Error(`Airtable create error: ${json.error.message || JSON.stringify(json.error)}`);
+    if (json.error) throw new Error(`Airtable create [${table}]: ${json.error.message || JSON.stringify(json.error)}`);
   }
 }
 
 exports.handler = async (event) => {
   const headers = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
   };
@@ -67,7 +70,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers, body: "" };
 
   if (!BASE_ID || !API_KEY) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "Airtable não configurado (AIRTABLE_BASE_ID ou AIRTABLE_API_KEY ausentes)" }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "AIRTABLE_BASE_ID ou AIRTABLE_API_KEY não configurados" }) };
   }
 
   try {
@@ -78,15 +81,15 @@ exports.handler = async (event) => {
         listRecords("Watchlist"),
       ]);
 
-      const portfolio = pRecs.map(r => ({
-        id:       r.fields.entryId || r.id,
+      const portfolio = (pRecs || []).map(r => ({
+        id:       randomUUID(),
         ticker:   r.fields.ticker,
         avgPrice: r.fields.avgPrice,
         qty:      r.fields.qty ?? null,
       })).filter(p => p.ticker);
 
-      const watchlist = wRecs.map(r => ({
-        id:     r.fields.entryId || r.id,
+      const watchlist = (wRecs || []).map(r => ({
+        id:     randomUUID(),
         ticker: r.fields.ticker,
       })).filter(w => w.ticker);
 
@@ -97,30 +100,32 @@ exports.handler = async (event) => {
     if (event.httpMethod === "POST") {
       const { portfolio = [], watchlist = [] } = JSON.parse(event.body || "{}");
 
-      // Busca IDs existentes para deletar
       const [pRecs, wRecs] = await Promise.all([
         listRecords("Portfolio"),
         listRecords("Watchlist"),
       ]);
 
-      // Deleta tudo e re-insere
-      await Promise.all([
-        pRecs.length ? deleteRecords("Portfolio", pRecs.map(r => r.id)) : Promise.resolve(),
-        wRecs.length ? deleteRecords("Watchlist", wRecs.map(r => r.id)) : Promise.resolve(),
-      ]);
+      // Portfolio
+      if (pRecs !== null) {
+        await deleteRecords("Portfolio", pRecs.map(r => r.id));
+        if (portfolio.length) {
+          await createRecords("Portfolio", portfolio.map(p => ({
+            ticker:   p.ticker,
+            avgPrice: p.avgPrice,
+            ...(p.qty != null ? { qty: p.qty } : {}),
+          })));
+        }
+      }
 
-      await Promise.all([
-        portfolio.length ? createRecords("Portfolio", portfolio.map(p => ({
-          entryId:  p.id,
-          ticker:   p.ticker,
-          avgPrice: p.avgPrice,
-          ...(p.qty != null ? { qty: p.qty } : {}),
-        }))) : Promise.resolve(),
-        watchlist.length ? createRecords("Watchlist", watchlist.map(w => ({
-          entryId: w.id,
-          ticker:  w.ticker,
-        }))) : Promise.resolve(),
-      ]);
+      // Watchlist (tabela opcional — pula se não existir)
+      if (wRecs !== null) {
+        await deleteRecords("Watchlist", wRecs.map(r => r.id));
+        if (watchlist.length) {
+          await createRecords("Watchlist", watchlist.map(w => ({
+            ticker: w.ticker,
+          })));
+        }
+      }
 
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }

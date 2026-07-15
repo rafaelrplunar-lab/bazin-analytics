@@ -190,6 +190,36 @@ tr:hover td{background:var(--surface2)}
 .btn-import:hover{opacity:.9}
 .btn-imp-cancel{background:var(--surface3);color:var(--text-dim);border:1px solid var(--border2)}
 .btn-imp-cancel:hover{border-color:var(--red-lt);color:var(--red-lt)}
+/* ── AGENTE BAZIN: Radar / Análise / Chat ─── */
+.tab-nav{overflow-x:auto}
+.radar-line{position:relative;margin:1.25rem 0 .5rem;padding-left:1.35rem;border-left:2px solid var(--border2)}
+.radar-ev{position:relative;padding:.15rem 0 1.1rem 1rem}
+.radar-ev::before{content:'';position:absolute;left:-1.42rem;top:.42rem;width:11px;height:11px;border-radius:50%;background:var(--surface3);border:2px solid var(--border2)}
+.radar-ev.hot::before{background:var(--amber-lt);border-color:var(--amber-lt);box-shadow:0 0 10px rgba(245,158,11,.6)}
+.radar-ev.paid::before{background:var(--green);border-color:var(--green)}
+.radar-date{font-family:var(--mono);font-size:.72rem;color:var(--text-dim)}
+.radar-ev.hot .radar-date{color:var(--amber-lt);font-weight:600}
+.radar-title{font-size:.86rem;color:var(--text-br);margin:.1rem 0}
+.radar-meta{font-size:.72rem;color:var(--text-dim)}
+.radar-meta .val{color:var(--green-lt);font-family:var(--mono)}
+.b-hot{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+.b-paid{background:rgba(22,163,74,.1);color:#4ade80;border:1px solid rgba(22,163,74,.25)}
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.8rem;margin-top:1rem}
+.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.hist-tk{font-family:var(--mono);font-weight:600;color:var(--gold-lt);font-size:.9rem;margin-bottom:.5rem}
+.hist-row{display:flex;justify-content:space-between;font-size:.74rem;padding:.14rem 0;border-bottom:1px dashed var(--border)}
+.hist-row:last-child{border:none}
+.analysis-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.25rem;margin-top:1rem;font-size:.84rem;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.analysis-head{display:flex;justify-content:space-between;align-items:baseline;gap:.75rem;flex-wrap:wrap;margin-bottom:.65rem;font-family:var(--mono);font-size:.8rem}
+.analysis-head b{color:var(--gold-lt)} .analysis-head small{color:var(--text-dim);font-size:.68rem}
+.chat-box{display:flex;flex-direction:column;gap:.75rem;max-height:50vh;overflow-y:auto;padding:.25rem;margin-bottom:1rem}
+.msg{max-width:85%;padding:.7rem 1rem;border-radius:12px;font-size:.85rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--surface3);border:1px solid var(--border2);color:var(--text-br)}
+.msg.bot{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:2px solid var(--gold)}
+.chat-inp-row{display:flex;gap:.6rem}
+.chat-inp-row input{flex:1;background:var(--surface3);border:1px solid var(--border2);color:var(--text-br);padding:.6rem 1rem;border-radius:8px;font-size:.86rem;font-family:'DM Sans',sans-serif}
+.chat-inp-row input:focus{outline:none;border-color:var(--gold)}
+@media(max-width:640px){.msg{max-width:100%}.hist-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -206,6 +236,10 @@ tr:hover td{background:var(--surface2)}
     <nav class="tab-nav">
       <button class="tab-btn active" onclick="switchTab('portfolio',this)">📊 Minha Carteira</button>
       <button class="tab-btn" onclick="switchTab('watchlist',this)">🔭 Watchlist</button>
+      <button class="tab-btn" onclick="switchTab('radar',this)">📅 Radar</button>
+      <button class="tab-btn" onclick="switchTab('resultados',this)">📰 Análise</button>
+      <button class="tab-btn" onclick="switchTab('relatorio',this)">📈 Preditivo</button>
+      <button class="tab-btn" onclick="switchTab('chat',this)">💬 Agente</button>
     </nav>
   </div>
 </div>
@@ -267,6 +301,76 @@ tr:hover td{background:var(--surface2)}
     <div id="watchlistResults"></div>
   </div>
 </div>
+<!-- RADAR DE DIVIDENDOS -->
+<div id="tab-radar" class="tab-content"><div class="container">
+  <div class="input-card">
+    <h3>✦ Agenda de Proventos</h3>
+    <p class="footnote" style="margin-bottom:1rem">Eventos com <b style="color:var(--amber-lt)">data-com nos próximos 15 dias</b> ficam destacados — é antes da data-com (não do pagamento) que você precisa ter as ações para receber o provento.</p>
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <button class="btn btn-analyze" id="btnRadar" onclick="runRadar()">⚡ Atualizar Radar</button>
+      <span id="radarStamp" style="font-size:.7rem;color:var(--text-dim)"></span>
+    </div>
+    <div id="radarOut"></div>
+  </div>
+  <div class="input-card">
+    <h3>✦ Histórico de Dividendos por Ativo</h3>
+    <div id="histOut"><div class="empty"><span class="icon">🗂️</span>Atualize o radar para montar o histórico anual por ativo.</div></div>
+  </div>
+  <p class="footnote">Comprar às vésperas da data-com apenas para "capturar" o provento raramente compensa — na data-ex o preço abre ajustado pelo valor do dividendo. Use a agenda para decidir antecipar o aporte em ativos que você já compraria pelo Teto Bazin, não como gatilho isolado.</p>
+</div></div>
+
+<!-- RESULTADOS & ANÁLISE -->
+<div id="tab-resultados" class="tab-content"><div class="container">
+  <div class="input-card">
+    <h3>✦ Análise de Resultados via IA</h3>
+    <p class="footnote" style="margin-bottom:1rem">O agente pesquisa na web (RI, Status Invest, Investidor10) o último resultado divulgado e analisa sob a ótica Bazin: lucro, dividendos, payout, endividamento e impacto no Teto. Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Ticker (vazio = todos da carteira)</label>
+        <input type="text" id="resTicker" placeholder="FIQE3" maxlength="10" onkeydown="if(event.key==='Enter')runResultados()">
+      </div>
+      <button class="btn btn-analyze" id="btnRes" onclick="runResultados()">⚡ Buscar & Analisar</button>
+    </div>
+    <div id="resOut"></div>
+  </div>
+  <div class="input-card">
+    <h3>✦ Histórico de Análises</h3>
+    <div id="resHist"><div class="empty"><span class="icon">📭</span>As análises ficam salvas aqui, formando a linha do tempo de cada ativo.</div></div>
+  </div>
+</div></div>
+
+<!-- PREDITIVO / PRESCRITIVO -->
+<div id="tab-relatorio" class="tab-content"><div class="container">
+  <div class="input-card">
+    <h3>✦ Relatório Preditivo & Prescritivo</h3>
+    <p class="footnote" style="margin-bottom:1rem">Combina cotações (Yahoo Finance), notícias recentes (web) e o histórico salvo para: <b>preditivo</b> — tendência de lucros e dividendos; <b>prescritivo</b> — onde alocar o aporte do mês respeitando Teto Bazin, BESST e o teto setorial de 30%. Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Valor do aporte (R$)</label>
+        <input type="number" id="aporteVal" placeholder="1500" min="0" step="100" value="1500">
+      </div>
+      <button class="btn btn-analyze" id="btnRep" onclick="runRelatorio()">⚡ Gerar Relatório</button>
+    </div>
+    <div id="repOut"></div>
+  </div>
+</div></div>
+
+<!-- CHAT COM AGENTE -->
+<div id="tab-chat" class="tab-content"><div class="container">
+  <div class="input-card">
+    <h3>✦ Pergunte sobre seus ativos</h3>
+    <div class="chat-box" id="chatBox">
+      <div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira — "como foi o resultado da FIQE3?", "vale antecipar o aporte pra pegar o dividendo do BBAS3?", "qual o teto atualizado da TAEE11?". Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</div>
+    </div>
+    <div class="chat-inp-row">
+      <input type="text" id="chatInput" placeholder="Sua pergunta..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="btn btn-analyze" id="btnChat" onclick="sendChat()">Enviar</button>
+      <button class="btn btn-add" onclick="clearChat()" title="Limpar conversa" style="padding:.55rem .85rem">🗑</button>
+    </div>
+    <p class="footnote" style="margin-top:.75rem">O agente usa busca na web em tempo real e tem acesso aos dados da sua carteira, radar e histórico de análises desta sessão.</p>
+  </div>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -369,7 +473,7 @@ function sectorBadge(cat) {
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-const S = { portfolio:[], watchlist:[] };
+const S = { portfolio:[], watchlist:[], radar:null, radarAt:null, analyses:[], chat:[] };
 const FS = {
   portfolio:{ filter:'all', sortKey:'score', sortDir:-1 },
   watchlist: { filter:'all', sortKey:'rank',  sortDir: 1 },
@@ -378,7 +482,12 @@ let _pData=[], _wData=[];
 
 function init() {
   // 1. Carrega localStorage imediatamente (resposta rápida)
-  try { const sv=JSON.parse(localStorage.getItem('bazin_v3')||'{}'); S.portfolio=sv.portfolio||[]; S.watchlist=sv.watchlist||[]; } catch(e){}
+  try {
+    const sv=JSON.parse(localStorage.getItem('bazin_v3')||'{}');
+    S.portfolio=sv.portfolio||[]; S.watchlist=sv.watchlist||[];
+    S.radar=sv.radar||null; S.radarAt=sv.radarAt||null;
+    S.analyses=sv.analyses||[]; S.chat=sv.chat||[];
+  } catch(e){}
   renderChips(); updateHints();
   const uz=document.getElementById('uploadZone');
   uz.addEventListener('click',()=>document.getElementById('fileImport').click());
@@ -1208,6 +1317,262 @@ function confirmImportW(){
 function cancelImportW(){
   const el=document.getElementById('importPreviewW');
   el.style.display='none';el.innerHTML='';_importItemsW=[];
+}
+
+// ══════════════════════════════════════════════
+//  AGENTE BAZIN — HELPERS
+// ══════════════════════════════════════════════
+function fmtDate(d){
+  if(!d) return '—';
+  const dt=new Date(typeof d==='number'?d*1000:d+(String(d).length===10?'T12:00:00':''));
+  return isNaN(dt)?String(d):dt.toLocaleDateString('pt-BR');
+}
+function daysTo(d){
+  if(!d) return null;
+  const dt=new Date(typeof d==='number'?d*1000:d+(String(d).length===10?'T12:00:00':''));
+  if(isNaN(dt)) return null;
+  return Math.round((dt-new Date())/86400000);
+}
+function fmtBR(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function portfolioDesc(){
+  return S.portfolio.map(a=>`${a.ticker} (PM R$${a.avgPrice}${a.qty?', '+a.qty+' ações':''})`).join('; ')||'(carteira vazia)';
+}
+function saveWithAgent(){
+  localStorage.setItem('bazin_v3',JSON.stringify(S));
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(syncToAirtable,800);
+}
+
+async function callProxy(messages,useWebSearch=false,maxTokens=2000){
+  const res=await fetch('/.netlify/functions/claude-proxy',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages,useWebSearch,maxTokens}),
+  });
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+  return data.text||'';
+}
+
+const FRAMEWORK=`Você é um assessor de investimentos especializado em dividendos. A carteira usa a metodologia Décio Bazin + princípios de Luiz Barsi. Teto Bazin = base de dividendos ponderada (média 3 anos × 60% + últimos 12 meses × 40%) ÷ 6%. Filtro BESST (Bancos, Energia, Seguros, Saneamento, Telecom) como setores núcleo. Teto setorial 30%. Sinais de venda: +30%, +50% acum., +80%. Responda sempre em português do Brasil, de forma direta e técnica.`;
+
+// ══════════════════════════════════════════════
+//  RADAR DE DIVIDENDOS
+// ══════════════════════════════════════════════
+async function runRadar(){
+  if(!S.portfolio.length) return toast('Adicione ativos na aba Minha Carteira primeiro','error');
+  const btn=document.getElementById('btnRadar');
+  btn.disabled=true; btn.textContent='⏳ Buscando dados...';
+  document.getElementById('radarOut').innerHTML='<div class="loading"><div class="spinner"></div><p>Consultando Yahoo Finance para '+S.portfolio.length+' ativo(s)...</p></div>';
+  try{
+    const raw=await fetchStocks(S.portfolio.map(p=>p.ticker));
+    const assets=[];
+    for(const [sym,data] of Object.entries(raw)){
+      const divs=(data.dividendsHistory||[]).map(d=>({date:d.date,amount:d.amount})).sort((a,b)=>new Date(b.date)-new Date(a.date));
+      const byYear={};
+      divs.forEach(d=>{const y=new Date(d.date).getFullYear();byYear[y]=(byYear[y]||0)+d.amount;});
+      const upcoming=[];
+      if(data.exDividendDate){
+        const d=daysTo(data.exDividendDate);
+        if(d!==null&&d>=-1){
+          upcoming.push({type:'Dividendo',rate:data.lastDividendValue||0,dataCom:null,exDate:data.exDividendDate,paymentDate:null});
+        }
+      }
+      assets.push({
+        ticker:sym,
+        price:data.regularMarketPrice||0,
+        upcoming,
+        last:divs.slice(0,4).map(d=>({type:'Dividendo',rate:d.amount,date:d.date})),
+        byYear:Object.entries(byYear).map(([y,t])=>({year:+y,total:t})).sort((a,b)=>b.year-a.year),
+      });
+    }
+    S.radar={assets};S.radarAt=new Date().toISOString();
+    saveWithAgent();
+    renderRadar();renderHist();
+    toast('Radar atualizado','success');
+  }catch(e){
+    console.error(e);
+    document.getElementById('radarOut').innerHTML='<div class="empty"><span class="icon">⚠️</span>Erro ao buscar dados. Tente novamente.</div>';
+    toast('Erro ao atualizar radar','error');
+  }
+  btn.disabled=false; btn.textContent='⚡ Atualizar Radar';
+}
+
+function renderRadar(){
+  const out=document.getElementById('radarOut');
+  const stamp=document.getElementById('radarStamp');
+  if(!S.radar){out.innerHTML='';stamp.textContent='';return;}
+  stamp.textContent='atualizado em '+new Date(S.radarAt).toLocaleString('pt-BR');
+  const assets=S.radar.assets||[];
+  const upcoming=assets.flatMap(a=>(a.upcoming||[]).map(ev=>({...ev,ticker:a.ticker}))).sort((x,y)=>{
+    const dx=daysTo(x.exDate)||9999,dy=daysTo(y.exDate)||9999;return dx-dy;
+  });
+  const past=assets.flatMap(a=>(a.last||[]).slice(0,2).map(ev=>({...ev,ticker:a.ticker}))).slice(0,8);
+  let html='';
+  if(!upcoming.length){
+    html='<div class="empty" style="padding:1.25rem"><span class="icon">🌙</span>Nenhum provento futuro anunciado neste momento via Yahoo Finance.</div>';
+  } else {
+    html='<div class="radar-line">'+upcoming.map(ev=>{
+      const d=daysTo(ev.exDate);
+      const hot=d!==null&&d>=0&&d<=15;
+      return`<div class="radar-ev ${hot?'hot':''}">
+        <div class="radar-date">${ev.exDate?'data-com '+fmtDate(ev.exDate):''}${d!==null?` · ${d===0?'HOJE':d>0?'em '+d+' dia(s)':'ontem/passou'}`:''}</div>
+        <div class="radar-title"><b style="font-family:var(--mono);color:var(--gold-lt)">${ev.ticker}</b> — ${ev.type||'Provento'} ${hot?'<span class="badge b-hot">data-com em breve</span>':''}</div>
+        <div class="radar-meta">${ev.rate>0?`<span class="val">R$ ${fmtBR(ev.rate)}/ação</span>`:'valor a confirmar'}</div>
+      </div>`;}).join('')+'</div>';
+  }
+  if(past.length){
+    html+='<div style="margin-top:1.25rem;font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Últimos pagos / ex-dividendo</div>';
+    html+='<div class="radar-line" style="margin-top:.6rem">'+past.map(ev=>`
+      <div class="radar-ev paid">
+        <div class="radar-date">${fmtDate(ev.date)}</div>
+        <div class="radar-title"><b style="font-family:var(--mono);color:var(--gold-lt)">${ev.ticker}</b> — ${ev.type||'Dividendo'} <span class="badge b-paid">pago</span></div>
+        <div class="radar-meta"><span class="val">R$ ${fmtBR(ev.rate)}/ação</span></div>
+      </div>`).join('')+'</div>';
+  }
+  out.innerHTML=html;
+}
+
+function renderHist(){
+  const out=document.getElementById('histOut');
+  if(!S.radar||!(S.radar.assets||[]).length){return;}
+  out.innerHTML='<div class="hist-grid">'+S.radar.assets.map(a=>{
+    const rows=(a.byYear||[]).slice(0,6).map(r=>`<div class="hist-row">
+      <span style="font-family:var(--mono);color:var(--text-dim)">${r.year}</span>
+      <span style="font-family:var(--mono);color:var(--text-br)">R$ ${fmtBR(r.total)}</span>
+    </div>`).join('');
+    return`<div class="hist-card">
+      <div class="hist-tk">${a.ticker} <span style="color:var(--text-dim);font-size:.7rem;font-weight:400">R$ ${fmtBR(a.price)}</span></div>
+      ${rows||'<div class="hist-row"><span style="color:var(--text-dim)">sem histórico</span></div>'}
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// Patch switchTab to init new tabs on first open
+const _origSwitchTab=switchTab;
+function switchTab(tab,btn){
+  _origSwitchTab(tab,btn);
+  if(tab==='radar'&&S.radar){renderRadar();renderHist();}
+  if(tab==='resultados') renderResHist();
+  if(tab==='chat') renderChat();
+}
+
+// ══════════════════════════════════════════════
+//  RESULTADOS & ANÁLISE
+// ══════════════════════════════════════════════
+async function runResultados(){
+  const raw=document.getElementById('resTicker').value.trim().toUpperCase().replace('.SA','');
+  const tickers=raw?[raw]:S.portfolio.map(p=>p.ticker);
+  if(!tickers.length) return toast('Adicione ativos na carteira primeiro','error');
+  const btn=document.getElementById('btnRes');
+  btn.disabled=true; btn.textContent='⏳ Analisando...';
+  const out=document.getElementById('resOut');
+  out.innerHTML='';
+  for(const t of tickers){
+    out.innerHTML+=`<div class="loading" id="ld-${t}" style="padding:1rem"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div><p>Pesquisando resultado de ${t}...</p></div>`;
+    try{
+      const prompt=`${FRAMEWORK}\nPesquise na web o resultado trimestral mais recente de ${t} (B3). Priorize RI da empresa, Status Invest, Investidor10, InfoMoney. Produza uma análise com:\n1) RESULTADO — trimestre/ano, receita, lucro líquido, variação a/a;\n2) DIVIDENDOS — proventos pagos/anunciados, payout, sustentabilidade;\n3) ENDIVIDAMENTO — dívida líquida/EBITDA;\n4) IMPACTO NO TETO BAZIN — a base de dividendos tende a subir, cair ou manter?\n5) VEREDITO — comprar no aporte, aguardar ou reavaliar, e por quê.\nSeja factual. Cite fontes no texto.`;
+      const text=await callProxy([{role:'user',content:prompt}],true,1500);
+      document.getElementById('ld-'+t)?.remove();
+      const entry={ticker:t,at:new Date().toISOString(),text};
+      S.analyses.unshift(entry);S.analyses=S.analyses.slice(0,40);
+      saveWithAgent();
+      out.innerHTML+=analysisHTML(entry);
+      renderResHist();
+    }catch(e){
+      console.error(e);
+      document.getElementById('ld-'+t)?.remove();
+      out.innerHTML+=`<div class="analysis-box"><div class="analysis-head"><b>${t}</b><small>erro</small></div>Erro: ${e.message}</div>`;
+    }
+  }
+  btn.disabled=false; btn.textContent='⚡ Buscar & Analisar';
+}
+
+function analysisHTML(e){
+  return`<div class="analysis-box"><div class="analysis-head"><b>${e.ticker}</b><small>${new Date(e.at).toLocaleString('pt-BR')}</small></div>${e.text}</div>`;
+}
+
+function renderResHist(){
+  const el=document.getElementById('resHist');
+  if(!el) return;
+  if(!S.analyses.length){el.innerHTML='<div class="empty"><span class="icon">📭</span>As análises ficam salvas aqui.</div>';return;}
+  el.innerHTML=S.analyses.slice(0,8).map(analysisHTML).join('');
+}
+
+// ══════════════════════════════════════════════
+//  RELATÓRIO PREDITIVO / PRESCRITIVO
+// ══════════════════════════════════════════════
+async function runRelatorio(){
+  if(!S.portfolio.length) return toast('Adicione ativos na carteira primeiro','error');
+  const btn=document.getElementById('btnRep');
+  btn.disabled=true; btn.textContent='⏳ Gerando...';
+  const out=document.getElementById('repOut');
+  const aporte=parseFloat(document.getElementById('aporteVal').value)||1500;
+  out.innerHTML='<div class="loading"><div class="spinner"></div><p>Cruzando cotações, dividendos, notícias e histórico...</p></div>';
+  try{
+    const radarCtx=S.radar?JSON.stringify({assets:S.radar.assets.map(a=>({ticker:a.ticker,price:a.price,byYear:a.byYear.slice(0,5)}))}).slice(0,2000):'(radar não atualizado)';
+    const histCtx=S.analyses.slice(0,5).map(a=>`[${a.ticker} ${a.at.slice(0,10)}]\n${a.text.slice(0,500)}`).join('\n---\n')||'(sem análises salvas)';
+    const prompt=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\nHistórico de dividendos (Yahoo Finance): ${radarCtx}\nAnálises recentes: ${histCtx}\n\nUse busca na web para informações atuais. Produza o relatório com:\n1) PANORAMA — cada ativo: preço atual vs. PM, Teto Bazin estimado e margem;\n2) PREDITIVO — tendência de lucro/dividendo por ativo para os próximos 12 meses (alta/estável/queda) com justificativa;\n3) PRESCRITIVO — como alocar R$ ${aporte} do aporte deste mês (valores por ativo), respeitando margem vs. Teto Bazin, preferência BESST e teto setorial de 30%; sinalize gatilhos de venda (+30/+50/+80%) se algum estiver ativo;\n4) RISCOS — 2-3 riscos concretos a monitorar.\nFormato: texto corrido com títulos. Números objetivos. Sem disclaimers longos.`;
+    const text=await callProxy([{role:'user',content:prompt}],true,2500);
+    const entry={ticker:'RELATÓRIO',at:new Date().toISOString(),text};
+    S.analyses.unshift(entry);S.analyses=S.analyses.slice(0,40);
+    saveWithAgent();
+    out.innerHTML=analysisHTML(entry);
+    renderResHist();
+    toast('Relatório gerado','success');
+  }catch(e){
+    console.error(e);
+    out.innerHTML=`<div class="empty"><span class="icon">⚠️</span>Erro ao gerar relatório: ${e.message}</div>`;
+    toast('Erro ao gerar relatório','error');
+  }
+  btn.disabled=false; btn.textContent='⚡ Gerar Relatório';
+}
+
+// ══════════════════════════════════════════════
+//  CHAT COM AGENTE
+// ══════════════════════════════════════════════
+function renderChat(){
+  const box=document.getElementById('chatBox');
+  if(!box) return;
+  const intro='<div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira.</div>';
+  const msgs=S.chat.map(m=>`<div class="msg ${m.role==='user'?'user':'bot'}">${m.content.replace(/</g,'&lt;')}</div>`).join('');
+  box.innerHTML=intro+msgs;
+  box.scrollTop=box.scrollHeight;
+}
+
+async function clearChat(){S.chat=[];saveWithAgent();renderChat();}
+
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const q=inp.value.trim();
+  if(!q) return;
+  inp.value='';
+  S.chat.push({role:'user',content:q});
+  renderChat();
+  const box=document.getElementById('chatBox');
+  box.innerHTML+=`<div class="msg bot" id="typing" style="color:var(--text-dim)">⏳ pesquisando...</div>`;
+  box.scrollTop=box.scrollHeight;
+  document.getElementById('btnChat').disabled=true;
+  try{
+    const radarCtx=S.radar?JSON.stringify({assets:S.radar.assets.map(a=>({ticker:a.ticker,price:a.price,byYear:a.byYear.slice(0,3)}))}).slice(0,1500):'';
+    const sys=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\n${radarCtx?'Radar de dividendos: '+radarCtx:''}\nAnálises recentes: ${S.analyses.slice(0,3).map(a=>a.ticker+': '+a.text.slice(0,250)).join(' | ')||'nenhuma'}`;
+    const msgs=[
+      {role:'user',content:sys},
+      {role:'assistant',content:'Entendido. Sou o agente Bazin e vou auxiliar com base nos dados da sua carteira.'},
+      ...S.chat.slice(-12),
+    ];
+    const text=await callProxy(msgs,true,1500);
+    document.getElementById('typing')?.remove();
+    S.chat.push({role:'assistant',content:text});
+    S.chat=S.chat.slice(-30);
+    saveWithAgent();renderChat();
+  }catch(e){
+    console.error(e);
+    document.getElementById('typing')?.remove();
+    S.chat.push({role:'assistant',content:'Tive um problema ao buscar dados. Tente novamente. ('+e.message+')'});
+    renderChat();
+  }
+  document.getElementById('btnChat').disabled=false;
 }
 
 init();

@@ -323,7 +323,7 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-resultados" class="tab-content"><div class="container">
   <div class="input-card">
     <h3>✦ Análise de Resultados via IA</h3>
-    <p class="footnote" style="margin-bottom:1rem">O agente pesquisa na web (RI, Status Invest, Investidor10) o último resultado divulgado e analisa sob a ótica Bazin: lucro, dividendos, payout, endividamento e impacto no Teto. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
+    <p class="footnote" style="margin-bottom:1rem">O agente analisa cada ativo sob a ótica Bazin: lucro, dividendos, payout, endividamento e impacto no Teto. Usa modelos <b>gratuitos</b> de IA (sem acesso à internet em tempo real) — confirme dados recentes no RI da empresa ou em Status Invest/Investidor10 antes de decidir. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
     <div class="input-row">
       <div class="input-group">
         <label>Ticker (vazio = todos da carteira)</label>
@@ -343,7 +343,7 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-relatorio" class="tab-content"><div class="container">
   <div class="input-card">
     <h3>✦ Relatório Preditivo & Prescritivo</h3>
-    <p class="footnote" style="margin-bottom:1rem">Combina cotações (Yahoo Finance), notícias recentes (web) e o histórico salvo para: <b>preditivo</b> — tendência de lucros e dividendos; <b>prescritivo</b> — onde alocar o aporte do mês respeitando Teto Bazin, BESST e o teto setorial de 30%. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
+    <p class="footnote" style="margin-bottom:1rem">Combina cotações e dividendos reais (Yahoo Finance) com IA <b>gratuita</b> para: <b>preditivo</b> — tendência de lucros e dividendos; <b>prescritivo</b> — onde alocar o aporte do mês respeitando Teto Bazin, BESST e o teto setorial de 30%. Sem acesso à internet em tempo real — trata apenas do que já está salvo no app. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
     <div class="input-row">
       <div class="input-group">
         <label>Valor do aporte (R$)</label>
@@ -360,14 +360,14 @@ tr:hover td{background:var(--surface2)}
   <div class="input-card">
     <h3>✦ Pergunte sobre seus ativos</h3>
     <div class="chat-box" id="chatBox">
-      <div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira — "como foi o resultado da FIQE3?", "vale antecipar o aporte pra pegar o dividendo do BBAS3?", "qual o teto atualizado da TAEE11?". Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</div>
+      <div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira — "vale antecipar o aporte pra pegar o dividendo do BBAS3?", "qual o teto atualizado da TAEE11?". Uso modelos gratuitos de IA, sem acesso à internet em tempo real. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</div>
     </div>
     <div class="chat-inp-row">
       <input type="text" id="chatInput" placeholder="Sua pergunta..." onkeydown="if(event.key==='Enter')sendChat()">
       <button class="btn btn-analyze" id="btnChat" onclick="sendChat()">Enviar</button>
       <button class="btn btn-add" onclick="clearChat()" title="Limpar conversa" style="padding:.55rem .85rem">🗑</button>
     </div>
-    <p class="footnote" style="margin-top:.75rem">O agente usa busca na web em tempo real e tem acesso aos dados da sua carteira, radar e histórico de análises desta sessão.</p>
+    <p class="footnote" style="margin-top:.75rem">O agente usa modelos de IA <b>gratuitos</b> (sem busca na web em tempo real) e tem acesso aos dados reais da sua carteira, radar e histórico de análises salvos no app.</p>
   </div>
 </div></div>
 
@@ -1343,11 +1343,11 @@ function saveWithAgent(){
   _syncTimer=setTimeout(syncToAirtable,800);
 }
 
-async function callProxy(messages,useWebSearch=false,maxTokens=2000){
+async function callProxy(messages,maxTokens=2000){
   const res=await fetch('/.netlify/functions/claude-proxy',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({messages,useWebSearch,maxTokens}),
+    body:JSON.stringify({messages,maxTokens}),
   });
   const data=await res.json();
   if(!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
@@ -1470,8 +1470,8 @@ async function runResultados(){
   for(const t of tickers){
     out.innerHTML+=`<div class="loading" id="ld-${t}" style="padding:1rem"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div><p>Pesquisando resultado de ${t}...</p></div>`;
     try{
-      const prompt=`${FRAMEWORK}\nPesquise na web o resultado trimestral mais recente de ${t} (B3). Priorize RI da empresa, Status Invest, Investidor10, InfoMoney. Produza uma análise com:\n1) RESULTADO — trimestre/ano, receita, lucro líquido, variação a/a;\n2) DIVIDENDOS — proventos pagos/anunciados, payout, sustentabilidade;\n3) ENDIVIDAMENTO — dívida líquida/EBITDA;\n4) IMPACTO NO TETO BAZIN — a base de dividendos tende a subir, cair ou manter?\n5) VEREDITO — comprar no aporte, aguardar ou reavaliar, e por quê.\nSeja factual. Cite fontes no texto.`;
-      const text=await callProxy([{role:'user',content:prompt}],true,1500);
+      const prompt=`${FRAMEWORK}\nCom base no que você sabe sobre ${t} (B3) até seu conhecimento de treinamento, produza uma análise com:\n1) RESULTADO — último resultado trimestral que você conhece: receita, lucro líquido, variação a/a;\n2) DIVIDENDOS — histórico de proventos, payout, sustentabilidade;\n3) ENDIVIDAMENTO — dívida líquida/EBITDA se souber;\n4) IMPACTO NO TETO BAZIN — a base de dividendos tende a subir, cair ou manter?\n5) VEREDITO — comprar no aporte, aguardar ou reavaliar, e por quê.\nSeja factual e direto. IMPORTANTE: no início da resposta, avise que os dados podem estar desatualizados (sem acesso à internet em tempo real) e que o usuário deve conferir no RI da empresa ou em Status Invest/Investidor10 antes de decidir.`;
+      const text=await callProxy([{role:'user',content:prompt}],1500);
       document.getElementById('ld-'+t)?.remove();
       const entry={ticker:t,at:new Date().toISOString(),text};
       S.analyses.unshift(entry);S.analyses=S.analyses.slice(0,40);
@@ -1511,8 +1511,8 @@ async function runRelatorio(){
   try{
     const radarCtx=S.radar?JSON.stringify({assets:S.radar.assets.map(a=>({ticker:a.ticker,price:a.price,byYear:a.byYear.slice(0,5)}))}).slice(0,2000):'(radar não atualizado)';
     const histCtx=S.analyses.slice(0,5).map(a=>`[${a.ticker} ${a.at.slice(0,10)}]\n${a.text.slice(0,500)}`).join('\n---\n')||'(sem análises salvas)';
-    const prompt=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\nHistórico de dividendos (Yahoo Finance): ${radarCtx}\nAnálises recentes: ${histCtx}\n\nUse busca na web para informações atuais. Produza o relatório com:\n1) PANORAMA — cada ativo: preço atual vs. PM, Teto Bazin estimado e margem;\n2) PREDITIVO — tendência de lucro/dividendo por ativo para os próximos 12 meses (alta/estável/queda) com justificativa;\n3) PRESCRITIVO — como alocar R$ ${aporte} do aporte deste mês (valores por ativo), respeitando margem vs. Teto Bazin, preferência BESST e teto setorial de 30%; sinalize gatilhos de venda (+30/+50/+80%) se algum estiver ativo;\n4) RISCOS — 2-3 riscos concretos a monitorar.\nFormato: texto corrido com títulos. Números objetivos. Sem disclaimers longos.`;
-    const text=await callProxy([{role:'user',content:prompt}],true,2500);
+    const prompt=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\nHistórico de dividendos (Yahoo Finance, dado real e atual): ${radarCtx}\nAnálises salvas anteriormente: ${histCtx}\n\nCom base nesses dados reais da carteira e no que você sabe sobre os ativos até seu conhecimento de treinamento, produza o relatório com:\n1) PANORAMA — cada ativo: preço atual vs. PM, Teto Bazin estimado e margem;\n2) PREDITIVO — tendência de lucro/dividendo por ativo para os próximos 12 meses (alta/estável/queda) com justificativa;\n3) PRESCRITIVO — como alocar R$ ${aporte} do aporte deste mês (valores por ativo), respeitando margem vs. Teto Bazin, preferência BESST e teto setorial de 30%; sinalize gatilhos de venda (+30/+50/+80%) se algum estiver ativo;\n4) RISCOS — 2-3 riscos concretos a monitorar.\nFormato: texto corrido com títulos. Números objetivos. Sem disclaimers longos, exceto um aviso breve de que fatos recentes (últimas semanas) podem não estar refletidos.`;
+    const text=await callProxy([{role:'user',content:prompt}],2500);
     const entry={ticker:'RELATÓRIO',at:new Date().toISOString(),text};
     S.analyses.unshift(entry);S.analyses=S.analyses.slice(0,40);
     saveWithAgent();
@@ -1549,18 +1549,18 @@ async function sendChat(){
   S.chat.push({role:'user',content:q});
   renderChat();
   const box=document.getElementById('chatBox');
-  box.innerHTML+=`<div class="msg bot" id="typing" style="color:var(--text-dim)">⏳ pesquisando...</div>`;
+  box.innerHTML+=`<div class="msg bot" id="typing" style="color:var(--text-dim)">⏳ pensando...</div>`;
   box.scrollTop=box.scrollHeight;
   document.getElementById('btnChat').disabled=true;
   try{
     const radarCtx=S.radar?JSON.stringify({assets:S.radar.assets.map(a=>({ticker:a.ticker,price:a.price,byYear:a.byYear.slice(0,3)}))}).slice(0,1500):'';
-    const sys=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\n${radarCtx?'Radar de dividendos: '+radarCtx:''}\nAnálises recentes: ${S.analyses.slice(0,3).map(a=>a.ticker+': '+a.text.slice(0,250)).join(' | ')||'nenhuma'}`;
+    const sys=`${FRAMEWORK}\nCarteira: ${portfolioDesc()}.\n${radarCtx?'Radar de dividendos (dado real, Yahoo Finance): '+radarCtx:''}\nAnálises recentes: ${S.analyses.slice(0,3).map(a=>a.ticker+': '+a.text.slice(0,250)).join(' | ')||'nenhuma'}\nVocê não tem acesso à internet em tempo real — se a pergunta depender de fato muito recente, avise que pode estar desatualizado.`;
     const msgs=[
       {role:'user',content:sys},
       {role:'assistant',content:'Entendido. Sou o agente Bazin e vou auxiliar com base nos dados da sua carteira.'},
       ...S.chat.slice(-12),
     ];
-    const text=await callProxy(msgs,true,1500);
+    const text=await callProxy(msgs,1500);
     document.getElementById('typing')?.remove();
     S.chat.push({role:'assistant',content:text});
     S.chat=S.chat.slice(-30);

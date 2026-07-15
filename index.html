@@ -323,7 +323,7 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-resultados" class="tab-content"><div class="container">
   <div class="input-card">
     <h3>✦ Análise de Resultados via IA</h3>
-    <p class="footnote" style="margin-bottom:1rem">O agente pesquisa na web (RI, Status Invest, Investidor10) o último resultado divulgado e analisa sob a ótica Bazin: lucro, dividendos, payout, endividamento e impacto no Teto. Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</p>
+    <p class="footnote" style="margin-bottom:1rem">O agente pesquisa na web (RI, Status Invest, Investidor10) o último resultado divulgado e analisa sob a ótica Bazin: lucro, dividendos, payout, endividamento e impacto no Teto. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
     <div class="input-row">
       <div class="input-group">
         <label>Ticker (vazio = todos da carteira)</label>
@@ -343,7 +343,7 @@ tr:hover td{background:var(--surface2)}
 <div id="tab-relatorio" class="tab-content"><div class="container">
   <div class="input-card">
     <h3>✦ Relatório Preditivo & Prescritivo</h3>
-    <p class="footnote" style="margin-bottom:1rem">Combina cotações (Yahoo Finance), notícias recentes (web) e o histórico salvo para: <b>preditivo</b> — tendência de lucros e dividendos; <b>prescritivo</b> — onde alocar o aporte do mês respeitando Teto Bazin, BESST e o teto setorial de 30%. Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</p>
+    <p class="footnote" style="margin-bottom:1rem">Combina cotações (Yahoo Finance), notícias recentes (web) e o histórico salvo para: <b>preditivo</b> — tendência de lucros e dividendos; <b>prescritivo</b> — onde alocar o aporte do mês respeitando Teto Bazin, BESST e o teto setorial de 30%. Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</p>
     <div class="input-row">
       <div class="input-group">
         <label>Valor do aporte (R$)</label>
@@ -360,7 +360,7 @@ tr:hover td{background:var(--surface2)}
   <div class="input-card">
     <h3>✦ Pergunte sobre seus ativos</h3>
     <div class="chat-box" id="chatBox">
-      <div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira — "como foi o resultado da FIQE3?", "vale antecipar o aporte pra pegar o dividendo do BBAS3?", "qual o teto atualizado da TAEE11?". Requer <b>ANTHROPIC_API_KEY</b> configurada no Netlify.</div>
+      <div class="msg bot">Sou seu agente Bazin. Pergunte qualquer coisa sobre os ativos da sua carteira — "como foi o resultado da FIQE3?", "vale antecipar o aporte pra pegar o dividendo do BBAS3?", "qual o teto atualizado da TAEE11?". Requer <b>OPENROUTER_API_KEY</b> configurada no Netlify.</div>
     </div>
     <div class="chat-inp-row">
       <input type="text" id="chatInput" placeholder="Sua pergunta..." onkeydown="if(event.key==='Enter')sendChat()">

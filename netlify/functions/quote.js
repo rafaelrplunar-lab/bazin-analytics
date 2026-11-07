@@ -96,6 +96,94 @@ async function fetchChart(ticker, session) {
   };
 }
 
+// ── Fundamentals timeseries (dados anuais p/ critérios Buffett) ──
+const TS_TYPES = [
+  "annualTotalRevenue", "annualNetIncome", "annualEBIT",
+  "annualInvestedCapital", "annualOperatingCashFlow", "annualTaxRateForCalcs",
+];
+
+async function fetchFundamentals(ticker, session) {
+  const p1  = Math.floor((Date.now() - 6 * 365 * 86400000) / 1000);
+  const p2  = Math.floor(Date.now() / 1000);
+  const url = `https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/${ticker}?type=${TS_TYPES.join(",")}&period1=${p1}&period2=${p2}&crumb=${encodeURIComponent(session.crumb)}`;
+  const res = await httpsGet(url, {
+    "User-Agent": session.ua, "Cookie": session.cookies, "Accept": "application/json"
+  });
+  console.log(`timeseries ${ticker}:`, res.status);
+  if (res.status !== 200) return {};
+  const json = JSON.parse(res.body);
+  const series = {};
+  for (const r of json?.timeseries?.result || []) {
+    const type = r?.meta?.type?.[0];
+    if (!type) continue;
+    series[type] = (r[type] || [])
+      .filter(Boolean)
+      .map(x => ({ date: x.asOfDate, v: x.reportedValue?.raw }))
+      .filter(x => x.date && Number.isFinite(x.v))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return series;
+}
+
+// Combina séries anuais com fallback para os dados TTM/trimestrais do quoteSummary
+function buffettMetrics(ts, fd, ks, raw, totalDebt, totalCash) {
+  const rev = ts.annualTotalRevenue || [];
+  const ni  = ts.annualNetIncome || [];
+  const byDate = arr => Object.fromEntries(arr.map(x => [x.date, x.v]));
+
+  const cagr = arr => {
+    const s = arr.slice(-5);
+    if (s.length < 2) return null;
+    const first = s[0], last = s[s.length - 1];
+    const years = (new Date(last.date) - new Date(first.date)) / (365.25 * 86400000);
+    if (first.v <= 0 || last.v <= 0 || years < 0.9) return null;
+    return Math.pow(last.v / first.v, 1 / years) - 1;
+  };
+
+  const last3 = arr => arr.slice(-3);
+  const revM = byDate(rev), ebitM = byDate(ts.annualEBIT || []),
+        icM  = byDate(ts.annualInvestedCapital || []), ocfM = byDate(ts.annualOperatingCashFlow || []),
+        taxM = byDate(ts.annualTaxRateForCalcs || []);
+
+  const avg = vals => vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+
+  const margins = last3(ni).filter(x => revM[x.date] > 0).map(x => x.v / revM[x.date]);
+  const roics = last3(ts.annualEBIT || []).filter(x => icM[x.date] > 0).map(x => {
+    let tax = taxM[x.date];
+    if (!Number.isFinite(tax) || tax < 0 || tax > 0.5) tax = 0.34;
+    return x.v * (1 - tax) / icM[x.date];
+  });
+  const ni3  = last3(ni).filter(x => Number.isFinite(ocfM[x.date]));
+  const niSum  = ni3.reduce((s, x) => s + x.v, 0);
+  const ocfSum = ni3.reduce((s, x) => s + ocfM[x.date], 0);
+
+  let revenueCAGR  = cagr(rev),  revSrc = "anual";
+  let earningsCAGR = cagr(ni),   niSrc  = "anual";
+  let netMargin    = avg(margins);
+  let roic         = avg(roics);
+  let fcoLL        = ni3.length && niSum > 0 ? ocfSum / niSum : null;
+
+  // Fallbacks (TTM / trimestre a/a) quando a série anual não vem
+  if (revenueCAGR === null && raw(fd.revenueGrowth) != null)  { revenueCAGR  = raw(fd.revenueGrowth);  revSrc = "trimestral a/a"; }
+  if (earningsCAGR === null && raw(fd.earningsGrowth) != null) { earningsCAGR = raw(fd.earningsGrowth); niSrc  = "trimestral a/a"; }
+  if (netMargin === null && raw(fd.profitMargins) != null) netMargin = raw(fd.profitMargins);
+  if (fcoLL === null) {
+    const ocf = raw(fd.operatingCashflow), nit = raw(ks.netIncomeToCommon);
+    if (Number.isFinite(ocf) && nit > 0) fcoLL = ocf / nit;
+  }
+  if (roic === null) {
+    const opM = raw(fd.operatingMargins), tr = raw(fd.totalRevenue);
+    const bv = raw(ks.bookValue), sh = raw(ks.sharesOutstanding);
+    const ic = (bv > 0 && sh > 0) ? bv * sh + totalDebt - totalCash : null;
+    if (Number.isFinite(opM) && tr > 0 && ic > 0) roic = opM * tr * (1 - 0.34) / ic;
+  }
+
+  return {
+    revenueCAGR, earningsCAGR, roic, netMargin, fcoLL,
+    years: Math.min(rev.length, 5), revSrc, niSrc,
+  };
+}
+
 // ── Main handler ──────────────────────────────────────────
 exports.handler = async (event) => {
   const headers = {
@@ -142,12 +230,15 @@ exports.handler = async (event) => {
 
   await Promise.allSettled(tickers.map(async sym => {
     try {
-      const [sumRes, chartRes] = await Promise.allSettled([
+      const [sumRes, chartRes, tsRes] = await Promise.allSettled([
         fetchSummary(sym, session),
         fetchChart(sym, session),
+        fetchFundamentals(sym, session),
       ]);
 
       const chart = chartRes.status === "fulfilled" ? chartRes.value : { price: 0, high52w: 0, divs: [] };
+      const ts    = tsRes.status === "fulfilled" ? tsRes.value : {};
+      if (tsRes.status === "rejected") console.warn(`timeseries ${sym} falhou:`, tsRes.reason?.message);
 
       if (sumRes.status === "rejected" || !sumRes.value) {
         // If summary fails, try to at least return chart data
@@ -177,6 +268,8 @@ exports.handler = async (event) => {
 
       // Price comes from chart if summary doesn't have it
       const price = raw(pr.regularMarketPrice) || chart.price || 0;
+      const totalDebt = raw(fd.totalDebt) ?? 0;
+      const totalCash = raw(fd.totalCash) ?? 0;
 
       results[sym.replace(".SA", "")] = {
         symbol:             sym.replace(".SA", ""),
@@ -192,10 +285,11 @@ exports.handler = async (event) => {
         bookValue:          raw(ks.bookValue)         ?? 0,
         payoutRatio:              raw(sd.payoutRatio)                   ?? null,
         trailingAnnualDividendRate: raw(sd.trailingAnnualDividendRate)   ?? null,
-        totalDebt:          raw(fd.totalDebt)         ?? 0,
-        totalCash:          raw(fd.totalCash)         ?? 0,
+        totalDebt,
+        totalCash,
         ebitda:             raw(fd.ebitda)            ?? 0,
         returnOnEquity:     raw(fd.returnOnEquity)    ?? 0,
+        fundamentals:       buffettMetrics(ts, fd, ks, raw, totalDebt, totalCash),
         dividendsHistory:   chart.divs,
         // Data com (ex-dividend date)
         exDividendDate:     raw(sd.exDividendDate)    ?? null,

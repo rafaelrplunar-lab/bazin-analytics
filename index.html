@@ -151,6 +151,12 @@ tr:hover td{background:var(--surface2)}
 .dc-recent{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:6px;font-size:.72rem;color:#94a3b8;border:1px solid var(--border2);white-space:nowrap}
 .dc-old{font-size:.72rem;color:var(--text-dim);white-space:nowrap}
 .mono{font-family:var(--mono)}
+.bf-wrap{display:flex;flex-direction:column;gap:.3rem}
+.bf-dots{display:flex;flex-wrap:wrap;gap:.2rem;max-width:150px}
+.bf-dot{font-size:.6rem;font-family:var(--mono);padding:.08rem .3rem;border-radius:4px;border:1px solid;cursor:help}
+.bf-dot.ok{color:#4ade80;border-color:rgba(22,163,74,.4);background:rgba(22,163,74,.1)}
+.bf-dot.ko{color:#f87171;border-color:rgba(185,28,28,.4);background:rgba(185,28,28,.1)}
+.bf-dot.na{color:var(--text-dim);border-color:var(--border2)}
 .c-green{color:var(--green-lt)}.c-red{color:var(--red-lt)}.c-amber{color:var(--amber-lt)}.c-gold{color:var(--gold-lt)}.c-dim{color:var(--text-dim)}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .section-header h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text-br)}
@@ -164,6 +170,7 @@ tr:hover td{background:var(--surface2)}
 .empty .icon{font-size:2.5rem;display:block;margin-bottom:.75rem}
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:.75rem 1.25rem;font-size:.8rem;color:var(--text);z-index:9999;transform:translateY(120px);opacity:0;transition:all .3s ease;max-width:360px;line-height:1.5}
 .toast.show{transform:translateY(0);opacity:1}
+.toast{white-space:pre-line}
 .toast.error{border-color:var(--red)}.toast.success{border-color:var(--green)}
 @media(max-width:768px){
   .input-row{flex-direction:column}.input-group input{width:100% !important}
@@ -227,7 +234,7 @@ tr:hover td{background:var(--surface2)}
   <div class="container">
     <div class="header-inner">
       <div class="logo"><h1>BAZIN ANALYTICS<span>Carteira de Dividendos</span></h1></div>
-      <span style="font-size:.72rem;color:var(--text-dim)">Yahoo Finance · Estratégia Décio Bazin · BESST Barsi</span>
+      <span style="font-size:.72rem;color:var(--text-dim)">Yahoo Finance · Décio Bazin · Qualidade Buffett · BESST Barsi</span>
     </div>
   </div>
 </header>
@@ -598,10 +605,11 @@ function filterBarHtml(tab,total,filtered){
     {k:'all',label:'Todos'},{k:'cf',label:'★ Compra Forte'},
     {k:'compra',label:'Compra'},{k:'aguardar',label:'Aguardar'},
     {k:'reavaliar',label:'Reavaliar'},{k:'besst',label:'Só BESST'},
+    {k:'buffett',label:'🏛 Qualidade Buffett'},
   ];
   const sorts=tab==='portfolio'
-    ?[{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'varPerc',l:'Variação'},{k:'symbol',l:'Ticker'}]
-    :[{k:'rank',l:'Ranking'},{k:'score',l:'Score'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'yearsDiv',l:'Consistência'},{k:'symbol',l:'Ticker'}];
+    ?[{k:'score',l:'Score Bazin'},{k:'buffettPct',l:'Buffett'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'varPerc',l:'Variação'},{k:'symbol',l:'Ticker'}]
+    :[{k:'rank',l:'Ranking'},{k:'score',l:'Score Bazin'},{k:'buffettPct',l:'Buffett'},{k:'dy',l:'DY %'},{k:'margem',l:'Margem Bazin'},{k:'yearsDiv',l:'Consistência'},{k:'symbol',l:'Ticker'}];
   return `<div class="filter-bar">
     <label>Filtro:</label>
     ${statuses.map(s=>`<button class="filter-btn${fs.filter===s.k?' active':''}" onclick="setFilter('${tab}','${s.k}')">${s.label}</button>`).join('')}
@@ -623,7 +631,8 @@ function applyFilterSort(items,tab){
     if(fs.filter==='compra')    return item.status==='COMPRA';
     if(fs.filter==='aguardar')  return item.status==='AGUARDAR';
     if(fs.filter==='reavaliar') return item.status==='REAVALIAR';
-    if(fs.filter==='besst')     return item.besstCat !== 'X';
+    if(fs.filter==='besst')     return isBESST(item.besstCat);
+    if(fs.filter==='buffett')   return item.buffettPct!==null&&item.buffettPct>=0.8;
     return true;
   });
   out.sort((a,b)=>{
@@ -631,7 +640,7 @@ function applyFilterSort(items,tab){
     const va=a[k]??(fs.sortDir===-1?-Infinity:Infinity);
     const vb=b[k]??(fs.sortDir===-1?-Infinity:Infinity);
     if(typeof va==='string') return fs.sortDir*va.localeCompare(vb);
-    return fs.sortDir*(vb-va);
+    return fs.sortDir*(va-vb);
   });
   return out;
 }
@@ -654,6 +663,35 @@ async function fetchStocks(tickers){
 // ══════════════════════════════════════════════
 //  ANALYSIS ENGINE
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  CRITÉRIOS WARREN BUFFETT (qualidade do negócio)
+// ══════════════════════════════════════════════
+// Bancos/seguradoras: ROIC, FCO/Lucro e DL/EBITDA não se aplicam — usa ROE no lugar do ROIC.
+function buffettChecks(fu,besstCat,roe,dlEbitda,ebitda,netDebt){
+  fu=fu||{};
+  const isFin=besstCat==='B'||besstCat==='S2';
+  const num=v=>v===null||v===undefined||!isFinite(v)?null:Number(v);
+  const pctS=v=>(v*100).toFixed(1)+'%';
+  const checks=[
+    {short:'Rec', label:'Crescimento receita > 7% a.a.', v:num(fu.revenueCAGR), ok:v=>v>0.07, f:pctS, src:fu.revSrc},
+    {short:'Luc', label:'Crescimento lucro > 9% a.a.',   v:num(fu.earningsCAGR), ok:v=>v>0.09, f:pctS, src:fu.niSrc},
+    isFin
+      ?{short:'ROE', label:'ROE > 15% (banco/seguradora)', v:num(roe)||null, ok:v=>v>0.15, f:pctS}
+      :{short:'ROIC',label:'ROIC > 15%',                   v:num(fu.roic),   ok:v=>v>0.15, f:pctS},
+    {short:'Mg',  label:'Margem líquida > 10%',          v:num(fu.netMargin), ok:v=>v>0.10, f:pctS},
+  ];
+  if(!isFin){
+    checks.push({short:'FCO',label:'FCO / Lucro líquido > 90%',v:num(fu.fcoLL),ok:v=>v>0.90,f:pctS});
+    const dlFail=dlEbitda===null&&!(ebitda>0)&&netDebt>0;
+    checks.push({short:'Dív',label:'Dívida líq. / EBITDA < 3',v:dlEbitda,ok:v=>v<3,
+      f:v=>v<0?'caixa líquido':v.toFixed(1)+'x',forceFail:dlFail});
+  }
+  checks.forEach(c=>{c.pass=c.forceFail?false:c.v===null?null:c.ok(c.v);});
+  const avail=checks.filter(c=>c.pass!==null).length;
+  const passed=checks.filter(c=>c.pass===true).length;
+  return {checks,avail,passed,total:checks.length,pct:avail>=3?passed/avail:null};
+}
+
 function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   const price=parseFloat(data.regularMarketPrice)||0;
   if(price<=0) return null;
@@ -737,9 +775,15 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
   }
   if(queda52w<-20&&dy>0.10){alertas.push('⚠️ Possível Value Trap');score-=2;}
 
+  const buffett=buffettChecks(data.fundamentals,besstCat,parseFloat(data.returnOnEquity),dlEbitda,ebitda,totalDebt-totalCash);
+  const q=buffett.pct;
+  if(q===null) alertas.push('Sem dados suficientes p/ critérios Buffett');
+  else if(q<0.5) alertas.push(`Qualidade Buffett fraca (${buffett.passed}/${buffett.avail})`);
+
+  // Bazin diz se está barata e paga bem; Buffett diz se o negócio é bom. Compra exige os dois.
   let status,bc;
-  if(score>=9){status='★ COMPRA FORTE';bc='b-cf';}
-  else if(score>=7){status='COMPRA';bc='b-c';}
+  if(score>=7&&q!==null&&q>=0.8){status='★ COMPRA FORTE';bc='b-cf';}
+  else if(score>=7&&(q===null||q>=0.5)){status='COMPRA';bc='b-c';}
   else if(score>=4){status='AGUARDAR';bc='b-a';}
   else{status='REAVALIAR';bc='b-r';}
 
@@ -797,6 +841,7 @@ function analyzeStock(data,avgPrice=null,qty=null,totalPortValue=null){
     dlEbitda,lpa,vpa,pl,
     roe:parseFloat(data.returnOnEquity)||0,
     score,status,bc,alertas,sig,varPerc,queda52w,ey,
+    buffett,buffettPct:q,
     besstCat,isBESST:besst,isCiclic,
     dataComStr,dataComDias,dataComStatus,
     lastDividendValue: data.lastDividendValue ?? null,
@@ -876,8 +921,15 @@ function sectorChartHtml(items){
 function buildRational(item,pos){
   const parts=[];
   const s=SECTOR_MAP[item.besstCat]||SECTOR_MAP.OUT;
-  if(item.score>=9) parts.push(`score máximo (${item.score}/11) — passa em todos os critérios Bazin`);
-  else if(item.score>=7) parts.push(`score sólido de ${item.score}/11`);
+  if(item.score>=9) parts.push(`score Bazin máximo (${item.score}/11)`);
+  else if(item.score>=7) parts.push(`score Bazin sólido de ${item.score}/11`);
+  const b=item.buffett;
+  if(b&&b.pct!==null){
+    const roi=b.checks.find(c=>c.short==='ROIC'||c.short==='ROE');
+    const roiTxt=roi&&roi.pass?` com ${roi.short} de ${roi.f(roi.v)}`:'';
+    if(b.pct>=0.8) parts.push(`negócio de qualidade pelos critérios Buffett (${b.passed}/${b.avail})${roiTxt}`);
+    else if(b.pct>=0.5) parts.push(`qualidade razoável pelos critérios Buffett (${b.passed}/${b.avail})`);
+  }
   if(item.dy>=8) parts.push(`DY de ${item.dy.toFixed(1)}% — renda acima da média`);
   else if(item.dy>=6) parts.push(`DY de ${item.dy.toFixed(1)}% — mínimo Bazin atendido`);
   if(item.margem!==null){
@@ -898,6 +950,29 @@ function buildRational(item,pos){
 function scoreHtml(sc){
   const c=sc>=7?'#4ade80':sc>=5?'#60a5fa':sc>=3?'#fbbf24':'#f87171';
   return `<div class="score-wrap"><span class="score-num" style="color:${c}">${sc}</span><div class="score-bar"><div class="score-fill" style="width:${Math.max(0,Math.min(100,sc/11*100))}%;background:${c}"></div></div></div>`;
+}
+const METHOD_NOTE='<b>Bazin</b> (preço e renda): teto = dividendos (60% média 3a + 40% últ. 12m) ÷ 6%. <b>Buffett</b> (qualidade): receita > 7% a.a. e lucro > 9% a.a. (CAGR até 5 anos), ROIC > 15%, margem líquida > 10% e FCO/lucro > 90% (média 3 anos), DL/EBITDA < 3 — bancos e seguradoras usam ROE > 15% e dispensam FCO e dívida. <b>Compra Forte</b> = Bazin ≥ 7 e ≥ 80% dos critérios Buffett; <b>Compra</b> = Bazin ≥ 7 e ≥ 50%. Toque na coluna Buffett para ver os valores de cada critério.';
+function showBuffett(sym){
+  const item=[..._pData,..._wData].find(i=>i.symbol===sym);
+  if(!item||!item.buffett) return;
+  const lines=item.buffett.checks.map(ch=>{
+    const mark=ch.pass===true?'✓':ch.pass===false?'✗':'–';
+    const val=ch.v===null?(ch.forceFail?'EBITDA negativo':'sem dado'):ch.f(ch.v)+(ch.src&&ch.src!=='anual'?` (${ch.src})`:'');
+    return `${mark} ${ch.label}: ${val}`;
+  });
+  toast(`${sym} — Buffett ${item.buffett.passed}/${item.buffett.avail}\n${lines.join('\n')}`,'info',9000);
+}
+function buffettHtml(item){
+  const b=item.buffett;
+  if(!b) return '<span class="no-data">—</span>';
+  const q=b.pct;
+  const c=q===null?'var(--text-dim)':q>=0.8?'#4ade80':q>=0.5?'#60a5fa':'#f87171';
+  const dots=b.checks.map(ch=>{
+    const val=ch.v===null?'sem dado':ch.f(ch.v)+(ch.src&&ch.src!=='anual'?` (${ch.src})`:'');
+    const cls=ch.pass===true?'ok':ch.pass===false?'ko':'na';
+    return `<span class="bf-dot ${cls}" title="${ch.label}: ${val}">${ch.short}</span>`;
+  }).join('');
+  return `<div class="bf-wrap" onclick="showBuffett('${item.symbol}')" style="cursor:pointer"><span class="score-num" style="color:${c}">${q===null?'n/d':b.passed+'/'+b.avail}</span><div class="bf-dots">${dots}</div></div>`;
 }
 function tetoHtml(item){
   if(!item.tetoBazin) return '<span class="no-data">—</span>';
@@ -939,6 +1014,7 @@ function portfolioRow(item){
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
     <td>${varH}</td>
     <td>${scoreHtml(item.score)}</td>
+    <td>${buffettHtml(item)}</td>
     <td><span class="badge ${item.bc}">${item.status}</span></td>
     <td class="mono c-amber">${item.dy.toFixed(2)}%</td>
     <td>${tetoHtml(item)}</td>
@@ -958,6 +1034,7 @@ function watchlistRow(item){
     <td><div class="ticker-cell"><div class="t-logo-fb">${item.symbol[0]}</div><div><div class="t-name">${item.symbol}</div><div class="t-sub">${item.name}</div></div></div></td>
     <td>${sectorBadge(item.besstCat)}</td>
     <td>${scoreHtml(item.score)}</td>
+    <td>${buffettHtml(item)}</td>
     <td><span class="badge ${item.bc}">${item.status}</span></td>
     <td class="mono c-gold">R$${item.price.toFixed(2)}</td>
     <td>${tetoHtml(item)}</td>
@@ -1027,11 +1104,11 @@ function reRenderPortfolio(){
     ${filterBarHtml('portfolio',_pData.length,visible.length)}
     <div class="table-wrap"><table>
       <thead><tr><th>Ativo</th><th>Setor</th><th>Preço Médio</th><th>Preço Atual</th><th>Variação</th>
-        <th>Score /11</th><th>Status</th><th>DY %</th><th>Teto Bazin</th>
+        <th>Bazin /11</th><th>Buffett</th><th>Status</th><th>DY %</th><th>Teto Bazin</th>
         <th>Margem</th><th>DL/EBITDA</th><th>Sinal Venda</th><th>Data Com</th><th>Alertas</th></tr></thead>
-      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="14" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+      <tbody>${visible.length?visible.map(portfolioRow).join(''):'<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
-    <div class="footnote">Teto Bazin calculado sobre média de 5 anos de dividendos (mais estável). Sinal de Venda: +30%→25% · +50%→50% acum. · +80%→75%. Score máx. 11 pts.</div>`;
+    <div class="footnote">${METHOD_NOTE} Sinal de Venda: +30%→25% · +50%→50% acum. · +80%→75%.</div>`;
 }
 
 // ══════════════════════════════════════════════
@@ -1076,7 +1153,7 @@ function reRenderWatchlist(){
           <span class="dca-pos">${i+1}º</span>
           <span class="dca-ticker">${item.symbol}</span>
           ${sectorBadge(item.besstCat)}
-          <span class="dca-metrics">Score ${item.score}/11 · DY ${item.dy.toFixed(1)}%${item.margem!==null?` · Margem ${item.margem>=0?'+':''}${item.margem.toFixed(1)}%`:''} · Teto R$${item.tetoBazin>0?item.tetoBazin.toFixed(2):'—'}</span>
+          <span class="dca-metrics">Bazin ${item.score}/11 · Buffett ${item.buffettPct!==null?item.buffett.passed+'/'+item.buffett.avail:'n/d'} · DY ${item.dy.toFixed(1)}%${item.margem!==null?` · Margem ${item.margem>=0?'+':''}${item.margem.toFixed(1)}%`:''} · Teto R$${item.tetoBazin>0?item.tetoBazin.toFixed(2):'—'}</span>
           <span class="dca-amount">R$${(amounts[i]||400).toLocaleString('pt-BR')}</span>
         </div>
         <div class="dca-rational">📌 ${buildRational(item,i)}</div>
@@ -1094,15 +1171,15 @@ function reRenderWatchlist(){
     <div class="summary-card"><div class="s-label">🏆 Setores BESST</div><div class="s-value c-green">${besst}</div><div class="s-sub">de ${_wData.length} ativos</div></div>
   </div>`;
   el.innerHTML=`${summaryHtml}${dcaHtml}
-    <div class="section-header"><h2>Análise Watchlist — Bazin + BESST Barsi</h2><span>${_wData.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span></div>
+    <div class="section-header"><h2>Análise Watchlist — Bazin + Buffett + BESST Barsi</h2><span>${_wData.length} ativo(s) · ${new Date().toLocaleString('pt-BR')}</span></div>
     ${filterBarHtml('watchlist',_wData.length,visible.length)}
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>Ativo</th><th>Setor</th><th>Score /11</th><th>Status</th>
+      <thead><tr><th>#</th><th>Ativo</th><th>Setor</th><th>Bazin /11</th><th>Buffett</th><th>Status</th>
         <th>Preço</th><th>Teto Bazin</th><th>Margem</th><th>DY %</th>
         <th>Consist.</th><th>Payout</th><th>DL/EBITDA</th><th>P/L</th><th>Graham</th><th>Data Com</th><th>Alertas</th></tr></thead>
-      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="16" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
+      <tbody>${visible.length?visible.map(watchlistRow).join(''):'<tr><td colspan="17" style="text-align:center;padding:2rem;color:var(--text-dim)">Nenhum ativo com esse filtro</td></tr>'}</tbody>
     </table></div>
-    <div class="footnote">Teto Bazin = média 5 anos ÷ 0,06. Ranking = Earnings Yield + DY (Greenblatt). BESST: Bancos · Energia · Saneamento · Seguros · Telecom (linha Barsi). Não constitui recomendação.</div>`;
+    <div class="footnote">${METHOD_NOTE} Ranking = Earnings Yield + DY (Greenblatt). BESST: Bancos · Energia · Saneamento · Seguros · Telecom (linha Barsi). Não constitui recomendação.</div>`;
 }
 
 function fmt(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -1354,7 +1431,7 @@ async function callProxy(messages,maxTokens=2000){
   return data.text||'';
 }
 
-const FRAMEWORK=`Você é um assessor de investimentos especializado em dividendos. A carteira usa a metodologia Décio Bazin + princípios de Luiz Barsi. Teto Bazin = base de dividendos ponderada (média 3 anos × 60% + últimos 12 meses × 40%) ÷ 6%. Filtro BESST (Bancos, Energia, Seguros, Saneamento, Telecom) como setores núcleo. Teto setorial 30%. Sinais de venda: +30%, +50% acum., +80%. Responda sempre em português do Brasil, de forma direta e técnica.`;
+const FRAMEWORK=`Você é um assessor de investimentos especializado em dividendos. A carteira usa a metodologia Décio Bazin + princípios de Luiz Barsi. Teto Bazin = base de dividendos ponderada (média 3 anos × 60% + últimos 12 meses × 40%) ÷ 6%. Filtro BESST (Bancos, Energia, Seguros, Saneamento, Telecom) como setores núcleo. Filtro de qualidade Warren Buffett: crescimento da receita > 7% a.a., crescimento do lucro > 9% a.a., ROIC > 15% (ROE > 15% para bancos/seguradoras), margem líquida > 10%, FCO/lucro líquido > 90%, dívida líquida/EBITDA < 3. Só recomende compra quando o ativo estiver abaixo do Teto Bazin E atender à maioria dos critérios Buffett. Teto setorial 30%. Sinais de venda: +30%, +50% acum., +80%. Responda sempre em português do Brasil, de forma direta e técnica.`;
 
 // ══════════════════════════════════════════════
 //  RADAR DE DIVIDENDOS
